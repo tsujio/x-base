@@ -1,0 +1,399 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "X-Base API"
+tags:
+  - name: Organization
+  - name: Table
+  - name: Folder
+paths:
+  /organizations:
+    post:
+      tags:
+        - Organization
+      summary: Create organization
+      parameters:
+        - $ref: "#/parameters/createOrganizationInput"
+      responses:
+        "200":
+          description: Created organization
+          schema:
+            $ref: "#/definitions/Organization"
+    get:
+      tags:
+        - Organization
+      summary: Get organization list
+      responses:
+        "200":
+          description: Organization list
+          schema:
+            $ref: "#/definitions/OrganizationList"
+  /organizations/{organizationId}:
+    parameters:
+      - $ref: "#/parameters/organizationId"
+    get:
+      tags:
+        - Organization
+      summary: Get organization
+      responses:
+        "200":
+          description: Organization
+          schema:
+            $ref: "#/definitions/Organization"
+    patch:
+      tags:
+        - Organization
+      summary: Update organization
+      parameters:
+        - $ref: "#/parameters/updateOrganizationInput"
+      responses:
+        "200":
+          description: Updated organization
+          schema:
+            $ref: "#/definitions/Organization"
+    delete:
+      tags:
+        - Organization
+      summary: Delete organization
+      responses:
+        "200":
+          description: Deleted
+  /tables:
+    parameters:
+      - $ref: "#/parameters/organizationIdHeader"
+    post:
+      tags:
+        - Table
+      summary: Create table
+      parameters:
+        - $ref: "#/parameters/createTableInput"
+      responses:
+        "200":
+          description: Created table
+          schema:
+            $ref: "#/definitions/Table"
+  /tables/{tableId}:
+    parameters:
+      - $ref: "#/parameters/organizationIdHeader"
+      - $ref: "#/parameters/tableId"
+    get:
+      tags:
+        - Table
+      summary: Get table
+      responses:
+        "200":
+          description: Table
+          schema:
+            $ref: "#/definitions/Table"
+    patch:
+      tags:
+        - Table
+      summary: Update table
+      parameters:
+        - $ref: "#/parameters/updateTableInput"
+      responses:
+        "200":
+          description: Updated table
+          schema:
+            $ref: "#/definitions/Table"
+    delete:
+      tags:
+        - Table
+      summary: Delete table
+      responses:
+        "200":
+          description: Deleted
+  /folders:
+    parameters:
+      - $ref: "#/parameters/organizationIdHeader"
+    post:
+      tags:
+        - Folder
+      summary: Create folder
+      parameters:
+        - $ref: "#/parameters/createFolderInput"
+      responses:
+        "200":
+          description: Created folder
+          schema:
+            $ref: "#/definitions/Folder"
+  /folders/{folderId}:
+    parameters:
+      - $ref: "#/parameters/organizationIdHeader"
+      - $ref: "#/parameters/folderId"
+    get:
+      tags:
+        - Folder
+      summary: Get folder
+      responses:
+        "200":
+          description: Folder
+          schema:
+            $ref: "#/definitions/Folder"
+    patch:
+      tags:
+        - Folder
+      summary: Update folder
+      parameters:
+        - $ref: "#/parameters/updateFolderInput"
+      responses:
+        "200":
+          description: Updated folder
+          schema:
+            $ref: "#/definitions/Folder"
+    delete:
+      tags:
+        - Folder
+      summary: Delete folder
+      responses:
+        "200":
+          description: Deleted
+  /folders/{folderId}/children:
+    parameters:
+      - $ref: "#/parameters/organizationIdHeader"
+      - $ref: "#/parameters/folderId"
+    get:
+      tags:
+        - Folder
+      summary: Get folder's children
+      responses:
+        "200":
+          description: Folder's children
+          schema:
+            $ref: "#/definitions/FolderChildren"
+parameters:
+  organizationIdHeader:
+    in: header
+    name: X-ORGANIZATION-ID
+    required: true
+    type: string
+  organizationId:
+    in: path
+    name: organizationId
+    required: true
+    type: string
+  tableId:
+    in: path
+    name: tableId
+    required: true
+    type: string
+  folderId:
+    in: path
+    name: folderId
+    required: true
+    type: string
+  createOrganizationInput:
+    in: body
+    name: createOrganizationInput
+    required: true
+    schema:
+      $ref: "#/definitions/CreateOrganizationInput"
+  updateOrganizationInput:
+    in: body
+    name: updateOrganizationInput
+    required: true
+    schema:
+      $ref: "#/definitions/UpdateOrganizationInput"
+  createTableInput:
+    in: body
+    name: createTableInput
+    required: true
+    schema:
+      $ref: "#/definitions/CreateTableInput"
+  updateTableInput:
+    in: body
+    name: updateTableInput
+    required: true
+    schema:
+      $ref: "#/definitions/UpdateTableInput"
+  createFolderInput:
+    in: body
+    name: createFolderInput
+    required: true
+    schema:
+      $ref: "#/definitions/CreateFolderInput"
+  updateFolderInput:
+    in: body
+    name: updateFolderInput
+    required: true
+    schema:
+      $ref: "#/definitions/UpdateFolderInput"
+definitions:
+  PaginatedList:
+    type: object
+    required:
+      - total_count
+    properties:
+      total_count:
+        type: integer
+  CreateOrganizationInput:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+  UpdateOrganizationInput:
+    type: object
+    properties:
+      name:
+        type: string
+  Organization:
+    type: object
+    required:
+      - id
+      - name
+      - created_at
+      - updated_at
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  OrganizationList:
+    allOf:
+      - $ref: "#/definitions/PaginatedList"
+      - type: object
+        required:
+          - organizations
+        properties:
+          organizations:
+            type: array
+            items:
+              $ref: "#/definitions/Organization"
+  TableFilesystemEntry:
+    type: object
+    required:
+      - id
+      - organization_id
+      - type
+      - name
+      - path
+      - created_at
+      - updated_at
+    properties:
+      id:
+        type: string
+        format: uuid
+      organization_id:
+        type: string
+        format: uuid
+      type:
+        type: string
+        enum: ["folder", "table"]
+      name:
+        type: string
+      path:
+        type: array
+        items:
+          type: object
+          required:
+            - id
+            - type
+            - name
+          properties:
+            id:
+              type: string
+              format: uuid
+            type:
+              type: string
+              enum: ["folder", "table"]
+            name:
+              type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  CreateTableInput:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+      parent_folder_id:
+        type: string
+        format: uuid
+  UpdateTableInput:
+    type: object
+    properties:
+      name:
+        type: string
+      parent_folder_id:
+        type: string
+        format: uuid
+  Table:
+    allOf:
+      - $ref: "#/definitions/TableFilesystemEntry"
+      - type: object
+        required:
+          - columns
+        properties:
+          columns:
+            type: array
+            items:
+              $ref: "#/definitions/Column"
+  CreateFolderInput:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+      parent_folder_id:
+        type: string
+        format: uuid
+  UpdateFolderInput:
+    type: object
+    properties:
+      name:
+        type: string
+      parent_folder_id:
+        type: string
+        format: uuid
+  Folder:
+    allOf:
+      - $ref: "#/definitions/TableFilesystemEntry"
+  FolderChildren:
+    allOf:
+      - $ref: "#/definitions/PaginatedList"
+      - type: object
+        required:
+          - children
+        properties:
+          children:
+            type: array
+            items:
+              $ref: "#/definitions/TableFilesystemEntry"
+  Column:
+    type: object
+    required:
+      - id
+      - name
+      - type
+      - created_at
+      - updated_at
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      type:
+        type: string
+        enum: ["string"]
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
