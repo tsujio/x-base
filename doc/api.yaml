@@ -223,9 +223,12 @@ definitions:
     type: object
     required:
       - total_count
+      - has_next
     properties:
       total_count:
         type: integer
+      has_next:
+        type: boolean
   CreateOrganizationInput:
     type: object
     required:
