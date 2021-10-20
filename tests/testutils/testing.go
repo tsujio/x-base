@@ -54,6 +54,7 @@ type APITestCase struct {
 	Method     string
 	Path       string
 	Query      url.Values
+	Header     http.Header
 	Body       map[string]interface{}
 	StatusCode int
 	Output     map[string]interface{}
@@ -99,6 +100,7 @@ func RunTestCase(t *testing.T, tc APITestCase) {
 	if err != nil {
 		t.Fatalf("[%s] %+v", tc.Title, err)
 	}
+	req.Header = tc.Header
 
 	// Serve request
 	r := httptest.NewRecorder()

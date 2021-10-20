@@ -9,6 +9,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
+	"github.com/tsujio/x-base/api/utils"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -17,8 +18,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	var input schemas.CreateOrganizationInput
 	err := schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Invalid request body: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -28,9 +28,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	}
 	err = o.Create(controller.DB)
 	if err != nil {
-		logging.Error(fmt.Sprintf("%+v", err), r)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Failed to create organization: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create organization", err)
 		return
 	}
 
@@ -38,9 +36,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	var output schemas.Organization
 	err = copier.Copy(&output, &o)
 	if err != nil {
-		logging.Error(fmt.Sprintf("%+v", err), r)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Failed to make output data: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

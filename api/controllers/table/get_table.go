@@ -1,4 +1,4 @@
-package organization
+package table
 
 import (
 	"encoding/json"
@@ -17,32 +17,42 @@ import (
 	"github.com/tsujio/x-base/logging"
 )
 
-func (controller *OrganizationController) GetOrganization(w http.ResponseWriter, r *http.Request) {
-	// Get organization id
+func (controller *TableController) GetTable(w http.ResponseWriter, r *http.Request) {
+	// Get table id
 	vars := mux.Vars(r)
 	var id uuid.UUID
-	err := schemas.DecodeUUID(vars, "organizationID", &id)
+	err := schemas.DecodeUUID(vars, "tableID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
 		return
 	}
 
 	// Fetch
-	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
+	table, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
 			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
 
 	// Convert to output schema
-	var output schemas.Organization
-	err = copier.Copy(&output, &organization)
+	var output schemas.Table
+	err = copier.Copy(&output, &table)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		return
+	}
+	path, err := table.GetPath(controller.DB)
+	if err != nil {
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		return
+	}
+	err = copier.Copy(&output.Path, &path)
+	if err != nil {
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (path)", err)
 		return
 	}
 

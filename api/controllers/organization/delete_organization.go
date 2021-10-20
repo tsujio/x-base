@@ -1,8 +1,6 @@
 package organization
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -12,7 +10,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/logging"
+	"github.com/tsujio/x-base/api/utils"
 )
 
 func (controller *OrganizationController) DeleteOrganization(w http.ResponseWriter, r *http.Request) {
@@ -21,8 +19,7 @@ func (controller *OrganizationController) DeleteOrganization(w http.ResponseWrit
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "organizationID", &id)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Invalid organization id: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
 		return
 	}
 
@@ -30,23 +27,17 @@ func (controller *OrganizationController) DeleteOrganization(w http.ResponseWrit
 	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(&schemas.Error{Message: "Not found"})
+			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-
-		logging.Error(fmt.Sprintf("%+v", err), r)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Failed to get organization: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
 		return
 	}
 
 	// Delete
 	err = organization.Delete(controller.DB)
 	if err != nil {
-		logging.Error(fmt.Sprintf("%+v", err), r)
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(&schemas.Error{Message: fmt.Sprintf("Failed to delete organization: %s", err)})
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to delete organization", err)
 		return
 	}
 }

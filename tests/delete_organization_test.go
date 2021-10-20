@@ -49,13 +49,13 @@ func TestDeleteOrganization(t *testing.T) {
 			StatusCode: http.StatusOK,
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire
-				res := testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", uuids[0]), nil)
+				res := testutils.ServeGet(router, makePath(uuids[0]), nil)
 				if res != nil {
 					t.Errorf("[%s] Not deleted", tc.Title)
 				}
 
 				// Did not delete other data
-				res = testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", uuids[1]), nil)
+				res = testutils.ServeGet(router, makePath(uuids[1]), nil)
 				if res == nil {
 					t.Errorf("[%s] Deleted other data", tc.Title)
 				}

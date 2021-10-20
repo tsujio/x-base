@@ -31,7 +31,7 @@ func GetOrganizationList(db *gorm.DB, opts *GetOrganizationListOpts) ([]Organiza
 		Order(utils.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&organizations).
 		Error
 	if err != nil {
-		return nil, 0, xerrors.Errorf("Failed to get organizations: %w", err)
+		return nil, 0, xerrors.Errorf("Failed to get models: %w", err)
 	}
 	return organizations, totalCount, nil
 }
@@ -47,7 +47,7 @@ func (o *Organization) Create(db *gorm.DB) error {
 
 	err := db.Create(o).Error
 	if err != nil {
-		return xerrors.Errorf("Failed to create organization: %w", err)
+		return xerrors.Errorf("Failed to create model: %w", err)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func (o *Organization) Save(db *gorm.DB) error {
 	}
 	err := db.Save(o).Error
 	if err != nil {
-		return xerrors.Errorf("Failed to save organization: %w", err)
+		return xerrors.Errorf("Failed to save model: %w", err)
 	}
 	return nil
 }
@@ -66,7 +66,7 @@ func (o *Organization) Save(db *gorm.DB) error {
 func (o *Organization) Get(db *gorm.DB) (*Organization, error) {
 	err := db.Where("id = ?", o.ID).First(o).Error
 	if err != nil {
-		return nil, xerrors.Errorf("Failed to get organization: %w", err)
+		return nil, xerrors.Errorf("Failed to get model: %w", err)
 	}
 	return o, nil
 }
@@ -74,7 +74,7 @@ func (o *Organization) Get(db *gorm.DB) (*Organization, error) {
 func (o *Organization) Delete(db *gorm.DB) error {
 	err := db.Where("id = ?", o.ID).Delete(o).Error
 	if err != nil {
-		return xerrors.Errorf("Failed to delete organization: %w", err)
+		return xerrors.Errorf("Failed to delete model: %w", err)
 	}
 	return nil
 }

@@ -26,6 +26,10 @@ func CreateRouter(db *gorm.DB) http.Handler {
 	organizationRouter := router.PathPrefix("/organizations").Subrouter()
 	routes.SetOrganizationRoutes(organizationRouter, db)
 
+	// Table routes
+	tableRouter := router.PathPrefix("/tables").Subrouter()
+	routes.SetTableRoutes(tableRouter, db)
+
 	handler := cors.AllowAll().Handler(router)
 
 	return handler
