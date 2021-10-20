@@ -8,32 +8,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/google/uuid"
-	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/tests/testutils"
 )
 
 func TestUpdateOrganization(t *testing.T) {
-	var uuids []uuid.UUID
-	for i := 0; i < 10; i++ {
-		uuids = append(uuids, uuid.New())
-	}
-
-	createOrganizations := func(n int) ([]models.Organization, error) {
-		var organizations []models.Organization
-		for i := 0; i < n; i++ {
-			o := models.Organization{
-				ID:   models.UUID(uuids[i]),
-				Name: fmt.Sprintf("organization-%02d", i+1),
-			}
-			err := o.Create(testutils.GetDB())
-			if err != nil {
-				return nil, err
-			}
-			organizations = append(organizations, o)
-		}
-		return organizations, nil
-	}
-
 	makePath := func(id uuid.UUID) string {
 		return fmt.Sprintf("/organizations/%s", id)
 	}
@@ -42,16 +20,19 @@ func TestUpdateOrganization(t *testing.T) {
 		{
 			Title: "Update name",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(2)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				  - id: organization-02
+				`)
 			},
-			Path: makePath(uuids[0]),
+			Path: makePath(testutils.GetUUID("organization-01")),
 			Body: map[string]interface{}{
 				"name": "new-organization",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         uuids[0].String(),
+				"id":         testutils.GetUUID("organization-01"),
 				"name":       "new-organization",
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
@@ -64,7 +45,7 @@ func TestUpdateOrganization(t *testing.T) {
 				}
 
 				// Did not change other data
-				res = testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", uuids[1]), nil)
+				res = testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", testutils.GetUUID("organization-02")), nil)
 				if res["name"] != "organization-02" {
 					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["name"])
 				}
@@ -73,10 +54,13 @@ func TestUpdateOrganization(t *testing.T) {
 		{
 			Title: "Empty name",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(2)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				  - id: organization-02
+				`)
 			},
-			Path: makePath(uuids[0]),
+			Path: makePath(testutils.GetUUID("organization-01")),
 			Body: map[string]interface{}{
 				"name": "",
 			},
@@ -88,14 +72,17 @@ func TestUpdateOrganization(t *testing.T) {
 		{
 			Title: "No update",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(2)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				  - id: organization-02
+				`)
 			},
-			Path:       makePath(uuids[0]),
+			Path:       makePath(testutils.GetUUID("organization-01")),
 			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         uuids[0].String(),
+				"id":         testutils.GetUUID("organization-01"),
 				"name":       "organization-01",
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
@@ -111,10 +98,12 @@ func TestUpdateOrganization(t *testing.T) {
 		{
 			Title: "Not found",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(2)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				`)
 			},
-			Path: makePath(uuids[3]),
+			Path: makePath(testutils.GetUUID("organization-02")),
 			Body: map[string]interface{}{
 				"name": "new-organization",
 			},

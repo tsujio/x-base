@@ -12,36 +12,57 @@ type AnyVal struct{}
 
 type UUID struct{}
 
-func (u UUID) match(s string) bool {
-	id, err := uuid.Parse(s)
-	if err != nil {
+func (u UUID) match(v interface{}) bool {
+	switch val := v.(type) {
+	case UUID:
+		return true
+	case string:
+		id, err := uuid.Parse(val)
+		if err != nil {
+			return false
+		}
+		if id == uuid.Nil {
+			return false
+		}
+		return true
+	default:
 		return false
 	}
-	if id == uuid.Nil {
-		return false
-	}
-	return true
 }
 
 type Timestamp struct{}
 
-func (t Timestamp) match(s string) bool {
-	tm, err := time.Parse(time.RFC3339, s)
-	if err != nil {
+func (t Timestamp) match(v interface{}) bool {
+	switch val := v.(type) {
+	case Timestamp:
+		return true
+	case string:
+		tm, err := time.Parse(time.RFC3339, val)
+		if err != nil {
+			return false
+		}
+		if tm.IsZero() {
+			return false
+		}
+		return true
+	default:
 		return false
 	}
-	if tm.IsZero() {
-		return false
-	}
-	return true
 }
 
 type Regexp struct {
 	Pattern string
 }
 
-func (r Regexp) match(s string) bool {
-	return regexp.MustCompile(r.Pattern).MatchString(s)
+func (r Regexp) match(v interface{}) bool {
+	switch val := v.(type) {
+	case Regexp:
+		return r.Pattern == val.Pattern
+	case string:
+		return regexp.MustCompile(r.Pattern).MatchString(val)
+	default:
+		return false
+	}
 }
 
 func CompareJson(x, y interface{}) string {
@@ -67,26 +88,13 @@ func CompareJson(x, y interface{}) string {
 			return isXUUID || isYUUID
 		},
 		cmp.Comparer(func(x, y interface{}) bool {
-			switch xv := x.(type) {
-			case UUID:
-				switch yv := y.(type) {
-				case UUID:
-					return true
-				case string:
-					return xv.match(yv)
-				default:
-					return false
-				}
-			case string:
-				switch yv := y.(type) {
-				case UUID:
-					return yv.match(xv)
-				default:
-					return cmp.Equal(x, y, opts...)
-				}
-			default:
-				return cmp.Equal(x, y, opts...)
+			if xv, ok := x.(UUID); ok {
+				return xv.match(y)
 			}
+			if yv, ok := y.(UUID); ok {
+				return yv.match(x)
+			}
+			return cmp.Equal(x, y, opts...)
 		}),
 	))
 
@@ -98,26 +106,13 @@ func CompareJson(x, y interface{}) string {
 			return isXTimestamp || isYTimestamp
 		},
 		cmp.Comparer(func(x, y interface{}) bool {
-			switch xv := x.(type) {
-			case Timestamp:
-				switch yv := y.(type) {
-				case Timestamp:
-					return true
-				case string:
-					return xv.match(yv)
-				default:
-					return false
-				}
-			case string:
-				switch yv := y.(type) {
-				case Timestamp:
-					return yv.match(xv)
-				default:
-					return cmp.Equal(x, y, opts...)
-				}
-			default:
-				return cmp.Equal(x, y, opts...)
+			if xv, ok := x.(Timestamp); ok {
+				return xv.match(y)
 			}
+			if yv, ok := y.(Timestamp); ok {
+				return yv.match(x)
+			}
+			return cmp.Equal(x, y, opts...)
 		}),
 	))
 
@@ -129,26 +124,41 @@ func CompareJson(x, y interface{}) string {
 			return isXRegexp || isYRegexp
 		},
 		cmp.Comparer(func(x, y interface{}) bool {
-			switch xv := x.(type) {
-			case Regexp:
+			if xv, ok := x.(Regexp); ok {
+				return xv.match(y)
+			}
+			if yv, ok := y.(Regexp); ok {
+				return yv.match(x)
+			}
+			return cmp.Equal(x, y, opts...)
+		}),
+	))
+
+	// Compare uuid.UUID
+	opts = append(opts, cmp.FilterValues(
+		func(x, y interface{}) bool {
+			_, isXUUID := x.(uuid.UUID)
+			_, isYUUID := y.(uuid.UUID)
+			return isXUUID || isYUUID
+		},
+		cmp.Comparer(func(x, y interface{}) bool {
+			match := func(xv uuid.UUID, y interface{}) bool {
 				switch yv := y.(type) {
-				case Regexp:
-					return xv.Pattern == yv.Pattern
+				case uuid.UUID:
+					return xv == yv
 				case string:
-					return xv.match(yv)
+					return xv.String() == yv
 				default:
 					return false
 				}
-			case string:
-				switch yv := y.(type) {
-				case Regexp:
-					return yv.match(xv)
-				default:
-					return cmp.Equal(x, y, opts...)
-				}
-			default:
-				return cmp.Equal(x, y, opts...)
 			}
+			if xv, ok := x.(uuid.UUID); ok {
+				return match(xv, y)
+			}
+			if yv, ok := y.(uuid.UUID); ok {
+				return match(yv, x)
+			}
+			return cmp.Equal(x, y, opts...)
 		}),
 	))
 

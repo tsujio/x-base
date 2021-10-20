@@ -8,32 +8,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/google/uuid"
-	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/tests/testutils"
 )
 
 func TestGetOrganization(t *testing.T) {
-	var uuids []uuid.UUID
-	for i := 0; i < 10; i++ {
-		uuids = append(uuids, uuid.New())
-	}
-
-	createOrganizations := func(n int) ([]models.Organization, error) {
-		var organizations []models.Organization
-		for i := 0; i < n; i++ {
-			o := models.Organization{
-				ID:   models.UUID(uuids[i]),
-				Name: fmt.Sprintf("organization-%02d", i+1),
-			}
-			err := o.Create(testutils.GetDB())
-			if err != nil {
-				return nil, err
-			}
-			organizations = append(organizations, o)
-		}
-		return organizations, nil
-	}
-
 	makePath := func(id uuid.UUID) string {
 		return fmt.Sprintf("/organizations/%s", id)
 	}
@@ -42,14 +20,17 @@ func TestGetOrganization(t *testing.T) {
 		{
 			Title: "General case",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(3)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				  - id: organization-02
+				`)
 			},
-			Path:       makePath(uuids[1]),
+			Path:       makePath(testutils.GetUUID("organization-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         uuids[1].String(),
-				"name":       "organization-02",
+				"id":         testutils.GetUUID("organization-01"),
+				"name":       "organization-01",
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
@@ -57,10 +38,13 @@ func TestGetOrganization(t *testing.T) {
 		{
 			Title: "Not found",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(3)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				  - id: organization-02
+				`)
 			},
-			Path:       makePath(uuids[4]),
+			Path:       makePath(testutils.GetUUID("organization-03")),
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
 				"message": "Not found",

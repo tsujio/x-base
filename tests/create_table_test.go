@@ -7,50 +7,21 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/google/uuid"
-	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/tests/testutils"
 )
 
 func TestCreateTable(t *testing.T) {
-	var uuids []uuid.UUID
-	for i := 0; i < 10; i++ {
-		uuids = append(uuids, uuid.New())
-	}
-
-	createOrganizations := func(n int) error {
-		for i := 0; i < n; i++ {
-			o := models.Organization{
-				ID:   models.UUID(uuids[i]),
-				Name: fmt.Sprintf("organization-%02d", i+1),
-			}
-			if err := o.Create(testutils.GetDB()); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	createFolders := func(entries []models.TableFilesystemEntry) error {
-		for _, e := range entries {
-			if err := (&models.Folder{
-				TableFilesystemEntry: e,
-			}).Create(testutils.GetDB()); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
 	testCases := []testutils.APITestCase{
 		{
 			Title: "Create at root",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				err := createOrganizations(1)
-				return err
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
 			},
 			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{uuids[0].String()},
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Body: map[string]interface{}{
 				"name": "table-01",
@@ -58,7 +29,7 @@ func TestCreateTable(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": uuids[0].String(),
+				"organization_id": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
@@ -81,53 +52,40 @@ func TestCreateTable(t *testing.T) {
 		{
 			Title: "Create at sub folder",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				if err := createOrganizations(1); err != nil {
-					return err
-				}
-				if err := createFolders([]models.TableFilesystemEntry{
-					{
-						ID:             models.UUID(uuids[1]),
-						OrganizationID: models.UUID(uuids[0]),
-						Name:           "folder-01",
-					},
-					{
-						ID:             models.UUID(uuids[2]),
-						OrganizationID: models.UUID(uuids[0]),
-						Name:           "folder-02",
-						ParentFolderID: (*models.UUID)(&uuids[1]),
-					},
-					{
-						ID:             models.UUID(uuids[3]),
-						OrganizationID: models.UUID(uuids[0]),
-						Name:           "folder-03",
-						ParentFolderID: (*models.UUID)(&uuids[1]),
-					},
-				}); err != nil {
-					return err
-				}
-				return nil
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: folder-01
+				        type: folder
+				        children:
+				          - id: folder-02
+				            type: folder
+				          - id: folder-03
+				            type: folder				        
+				`)
 			},
 			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{uuids[0].String()},
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Body: map[string]interface{}{
 				"name":             "table-01",
-				"parent_folder_id": uuids[2].String(),
+				"parent_folder_id": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": uuids[0].String(),
+				"organization_id": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   uuids[1].String(),
+						"id":   testutils.GetUUID("folder-01"),
 						"name": "folder-01",
 						"type": "folder",
 					},
 					map[string]interface{}{
-						"id":   uuids[2].String(),
+						"id":   testutils.GetUUID("folder-02"),
 						"name": "folder-02",
 						"type": "folder",
 					},
@@ -149,8 +107,14 @@ func TestCreateTable(t *testing.T) {
 		},
 		{
 			Title: "Empty name",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
 			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{uuids[0].String()},
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Body: map[string]interface{}{
 				"name": "",
