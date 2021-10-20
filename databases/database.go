@@ -2,6 +2,7 @@ package databases
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -62,7 +63,11 @@ func Setup(conf *DBConfig, migrationsDir string) error {
 
 func Open(conf *DBConfig) (*gorm.DB, error) {
 	// Open db
-	db, err := gorm.Open(mysql.Open(getUrl(conf)), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(getUrl(conf)), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC().Truncate(time.Second)
+		},
+	})
 	if err != nil {
 		return nil, xerrors.Errorf("Failed to open database: %w", err)
 	}

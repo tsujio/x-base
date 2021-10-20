@@ -33,7 +33,7 @@ func TestGetOrganizationList(t *testing.T) {
 	testCases := []testutils.APITestCase{
 		{
 			Title: "General case",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -63,7 +63,7 @@ func TestGetOrganizationList(t *testing.T) {
 		},
 		{
 			Title: "hasNext=false",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -87,7 +87,7 @@ func TestGetOrganizationList(t *testing.T) {
 		},
 		{
 			Title: "Too large page",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -104,7 +104,7 @@ func TestGetOrganizationList(t *testing.T) {
 		},
 		{
 			Title: "pageSize=0",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -121,7 +121,7 @@ func TestGetOrganizationList(t *testing.T) {
 		},
 		{
 			Title: "page=0",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -136,7 +136,7 @@ func TestGetOrganizationList(t *testing.T) {
 		},
 		{
 			Title: "pageSize=-1",
-			Prepare: func(db *gorm.DB) error {
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				_, err := createOrganizations(5)
 				return err
 			},
@@ -154,7 +154,6 @@ func TestGetOrganizationList(t *testing.T) {
 	for _, tc := range testCases {
 		tc.Path = "/organizations"
 		tc.Method = http.MethodGet
-
 		testutils.RunTestCase(t, tc)
 	}
 }

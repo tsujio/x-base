@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,11 +45,6 @@ func (o *Organization) Create(db *gorm.DB) error {
 		o.ID = UUID(id)
 	}
 
-	if o.CreatedAt.IsZero() {
-		o.CreatedAt = time.Now().UTC().Truncate(time.Second)
-	}
-	o.UpdatedAt = o.CreatedAt
-
 	err := db.Create(o).Error
 	if err != nil {
 		return xerrors.Errorf("Failed to create organization: %w", err)
@@ -56,10 +52,29 @@ func (o *Organization) Create(db *gorm.DB) error {
 	return nil
 }
 
+func (o *Organization) Save(db *gorm.DB) error {
+	if o.ID == UUID(uuid.Nil) {
+		return fmt.Errorf("Empty id")
+	}
+	err := db.Save(o).Error
+	if err != nil {
+		return xerrors.Errorf("Failed to save organization: %w", err)
+	}
+	return nil
+}
+
 func (o *Organization) Get(db *gorm.DB) (*Organization, error) {
-	err := db.Model(o).Where("id = ?", o.ID).First(o).Error
+	err := db.Where("id = ?", o.ID).First(o).Error
 	if err != nil {
 		return nil, xerrors.Errorf("Failed to get organization: %w", err)
 	}
 	return o, nil
+}
+
+func (o *Organization) Delete(db *gorm.DB) error {
+	err := db.Where("id = ?", o.ID).Delete(o).Error
+	if err != nil {
+		return xerrors.Errorf("Failed to delete organization: %w", err)
+	}
+	return nil
 }

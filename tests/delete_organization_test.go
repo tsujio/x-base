@@ -12,7 +12,7 @@ import (
 	"github.com/tsujio/x-base/tests/testutils"
 )
 
-func TestGetOrganization(t *testing.T) {
+func TestDeleteOrganization(t *testing.T) {
 	var uuids []uuid.UUID
 	for i := 0; i < 10; i++ {
 		uuids = append(uuids, uuid.New())
@@ -40,27 +40,34 @@ func TestGetOrganization(t *testing.T) {
 
 	testCases := []testutils.APITestCase{
 		{
-			Title: "General case",
+			Title: "Delete",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(3)
+				_, err := createOrganizations(2)
 				return err
 			},
-			Path:       makePath(uuids[1]),
+			Path:       makePath(uuids[0]),
 			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":         uuids[1].String(),
-				"name":       "organization-02",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Reacquire
+				res := testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", uuids[0]), nil)
+				if res != nil {
+					t.Errorf("[%s] Not deleted", tc.Title)
+				}
+
+				// Did not delete other data
+				res = testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", uuids[1]), nil)
+				if res == nil {
+					t.Errorf("[%s] Deleted other data", tc.Title)
+				}
 			},
 		},
 		{
 			Title: "Not found",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				_, err := createOrganizations(3)
+				_, err := createOrganizations(2)
 				return err
 			},
-			Path:       makePath(uuids[4]),
+			Path:       makePath(uuids[3]),
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
 				"message": "Not found",
@@ -69,7 +76,7 @@ func TestGetOrganization(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc.Method = http.MethodGet
+		tc.Method = http.MethodDelete
 		testutils.RunTestCase(t, tc)
 	}
 }

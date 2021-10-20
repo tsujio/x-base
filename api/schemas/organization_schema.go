@@ -14,6 +14,10 @@ type CreateOrganizationInput struct {
 	Name string `json:"name" validate:"required"`
 }
 
+type UpdateOrganizationInput struct {
+	Name *string `json:"name" validate:"omitempty,gt=0"`
+}
+
 type Organization struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`

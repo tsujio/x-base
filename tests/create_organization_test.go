@@ -44,7 +44,6 @@ func TestCreateOrganization(t *testing.T) {
 	for _, tc := range testCases {
 		tc.Path = "/organizations"
 		tc.Method = http.MethodPost
-
 		testutils.RunTestCase(t, tc)
 	}
 }

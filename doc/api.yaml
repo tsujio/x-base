@@ -23,6 +23,9 @@ paths:
       tags:
         - Organization
       summary: Get organization list
+      parameters:
+        - $ref: "#/parameters/page"
+        - $ref: "#/parameters/pageSize"
       responses:
         "200":
           description: Organization list
@@ -182,6 +185,16 @@ parameters:
     name: folderId
     required: true
     type: string
+  page:
+    in: query
+    name: page
+    required: false
+    type: integer
+  pageSize:
+    in: query
+    name: pageSize
+    required: false
+    type: integer
   createOrganizationInput:
     in: body
     name: createOrganizationInput

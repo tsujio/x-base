@@ -17,4 +17,6 @@ func SetOrganizationRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("", controller.CreateOrganization).Methods(http.MethodPost)
 	router.HandleFunc("", controller.GetOrganizationList).Methods(http.MethodGet)
 	router.HandleFunc("/{organizationID}", controller.GetOrganization).Methods(http.MethodGet)
+	router.HandleFunc("/{organizationID}", controller.UpdateOrganization).Methods(http.MethodPatch)
+	router.HandleFunc("/{organizationID}", controller.DeleteOrganization).Methods(http.MethodDelete)
 }
