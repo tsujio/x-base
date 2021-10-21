@@ -61,19 +61,14 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 
 	// Convert to output schema
 	var output schemas.Folder
-	err = copier.Copy(&output, &folder)
-	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
-		return
-	}
-	path, err := folder.GetPath(controller.DB)
+	err = folder.ComputePath(controller.DB)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
-	err = copier.Copy(&output.Path, &path)
+	err = copier.Copy(&output, &folder)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (path)", err)
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

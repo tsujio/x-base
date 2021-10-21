@@ -15,6 +15,7 @@ type TableFilesystemEntry struct {
 	Name           string
 	Type           string
 	ParentFolderID *UUID
+	Path           []TableFilesystemPathEntry `gorm:"-"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -40,8 +41,17 @@ type TableFilesystemPathEntry struct {
 	Name string
 }
 
-func (e *TableFilesystemEntry) GetPath(db *gorm.DB) ([]TableFilesystemPathEntry, error) {
-	tableName := e.Type + "s"
+func (e *TableFilesystemEntry) ComputePath(db *gorm.DB) error {
+	var tableName string
+	switch e.Type {
+	case "table":
+		tableName = "tables"
+	case "folder":
+		tableName = "folders"
+	default:
+		return fmt.Errorf("Invalid type (%s)", e.Type)
+	}
+
 	var entries []TableFilesystemPathEntry
 	err := db.Raw(fmt.Sprintf(`
 	WITH recursive rec(id, organization_id, type, name, parent_folder_id, depth) AS (
@@ -56,14 +66,14 @@ func (e *TableFilesystemEntry) GetPath(db *gorm.DB) ([]TableFilesystemPathEntry,
 	       rec.parent_folder_id = f.id
 	    WHERE rec.parent_folder_id IS NOT NULL
 	)
-
 	SELECT id, type, name
 	FROM rec
 	ORDER BY depth ASC
 	`, tableName), e.ID).Scan(&entries).Error
 	if err != nil {
-		return nil, xerrors.Errorf("Failed to get path: %w", err)
+		return xerrors.Errorf("Failed to get path: %w", err)
 	}
 
-	return entries, nil
+	e.Path = entries
+	return nil
 }

@@ -47,19 +47,14 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 
 	// Convert to output schema
 	var output schemas.Folder
-	err = copier.Copy(&output, &f)
-	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
-		return
-	}
-	path, err := f.GetPath(controller.DB)
+	err = f.ComputePath(controller.DB)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
-	err = copier.Copy(&output.Path, &path)
+	err = copier.Copy(&output, &f)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (path)", err)
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

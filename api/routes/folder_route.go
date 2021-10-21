@@ -21,4 +21,5 @@ func SetFolderRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/{folderID}", controller.GetFolder).Methods(http.MethodGet)
 	router.HandleFunc("/{folderID}", controller.UpdateFolder).Methods(http.MethodPatch)
 	router.HandleFunc("/{folderID}", controller.DeleteFolder).Methods(http.MethodDelete)
+	router.HandleFunc("/{folderID}/children", controller.GetFolderChildren).Methods(http.MethodGet)
 }

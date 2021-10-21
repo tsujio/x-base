@@ -13,6 +13,11 @@ import (
 	"github.com/tsujio/x-base/logging"
 )
 
+var (
+	defaultPage     = 1
+	defaultPageSize = 10
+)
+
 func (controller *OrganizationController) GetOrganizationList(w http.ResponseWriter, r *http.Request) {
 	// Decode request parameters
 	var input schemas.GetOrganizationListInput
@@ -22,18 +27,25 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 		return
 	}
 
+	if input.Page == nil {
+		input.Page = &defaultPage
+	}
+	if input.PageSize == nil {
+		input.PageSize = &defaultPageSize
+	}
+
 	// Fetch
 	opts := models.GetOrganizationListOpts{
 		Sort:   "CreatedAt ASC, ID ASC",
-		Offset: (input.Page - 1) * input.PageSize,
-		Limit:  input.PageSize + 1,
+		Offset: (*input.Page - 1) * *input.PageSize,
+		Limit:  *input.PageSize + 1,
 	}
 	organizations, totalCount, err := models.GetOrganizationList(controller.DB, &opts)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organizations", err)
 		return
 	}
-	hasNext := len(organizations) > input.PageSize
+	hasNext := len(organizations) > *input.PageSize
 	if hasNext {
 		organizations = organizations[:len(organizations)-1]
 	}

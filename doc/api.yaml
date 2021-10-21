@@ -155,6 +155,8 @@ paths:
     parameters:
       - $ref: "#/parameters/organizationIdHeader"
       - $ref: "#/parameters/folderId"
+      - $ref: "#/parameters/page"
+      - $ref: "#/parameters/pageSize"
     get:
       tags:
         - Folder

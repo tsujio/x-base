@@ -6,10 +6,96 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
+
+	"github.com/tsujio/x-base/api/utils"
 )
 
 type Folder struct {
 	TableFilesystemEntry
+}
+
+type GetFolderChildrenOpts struct {
+	Sort          string
+	Offset, Limit int
+	ComputePath   bool
+}
+
+func GetFolderChildren(db *gorm.DB, folderID UUID, opts *GetFolderChildrenOpts) ([]interface{}, int64, error) {
+	var parentPath []TableFilesystemPathEntry
+	if opts.ComputePath && folderID != UUID(uuid.Nil) {
+		e := &TableFilesystemEntry{ID: UUID(folderID), Type: "folder"}
+		if err := e.ComputePath(db); err != nil {
+			return nil, 0, xerrors.Errorf("Failed to get path: %w", err)
+		}
+		parentPath = e.Path
+	}
+
+	parentFolderIDCond := func(db *gorm.DB) *gorm.DB {
+		if folderID == UUID(uuid.Nil) {
+			return db.Where("parent_folder_id IS NULL")
+		} else {
+			return db.Where("parent_folder_id = ?", folderID)
+		}
+	}
+
+	ret := []interface{}{}
+	var totalCount int64
+
+	// Fetch folders
+	var folders []Folder
+	var folderTotalCount int64
+	err := db.Model(&Folder{}).Scopes(parentFolderIDCond).
+		Count(&folderTotalCount).
+		Order(utils.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&folders).
+		Error
+	if err != nil {
+		return nil, 0, xerrors.Errorf("Failed to get folders: %w", err)
+	}
+	for _, f := range folders {
+		if opts.ComputePath {
+			f.Path = append([]TableFilesystemPathEntry{}, parentPath...)
+			f.Path = append(f.Path, TableFilesystemPathEntry{
+				ID:   f.ID,
+				Type: f.Type,
+				Name: f.Name,
+			})
+		}
+		ret = append(ret, f)
+	}
+	totalCount += folderTotalCount
+
+	// Fetch tables
+	offset := opts.Offset - len(folders)
+	if offset < 0 {
+		offset = 0
+	}
+	limit := opts.Limit - len(folders)
+	if limit < 0 {
+		limit = 0
+	}
+	var tables []Table
+	var tableTotalCount int64
+	err = db.Model(&Table{}).Scopes(parentFolderIDCond).
+		Count(&tableTotalCount).
+		Order(utils.ToSnakeCase(opts.Sort)).Offset(offset).Limit(limit).Find(&tables).
+		Error
+	if err != nil {
+		return nil, 0, xerrors.Errorf("Failed to get tables: %w", err)
+	}
+	for _, t := range tables {
+		if opts.ComputePath {
+			t.Path = append([]TableFilesystemPathEntry{}, parentPath...)
+			t.Path = append(t.Path, TableFilesystemPathEntry{
+				ID:   t.ID,
+				Type: t.Type,
+				Name: t.Name,
+			})
+		}
+		ret = append(ret, t)
+	}
+	totalCount += tableTotalCount
+
+	return ret, totalCount, nil
 }
 
 func (f *Folder) BeforeSave(db *gorm.DB) error {

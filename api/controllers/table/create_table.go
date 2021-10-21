@@ -47,19 +47,14 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 
 	// Convert to output schema
 	var output schemas.Table
-	err = copier.Copy(&output, &t)
-	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
-		return
-	}
-	path, err := t.GetPath(controller.DB)
+	err = t.ComputePath(controller.DB)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
-	err = copier.Copy(&output.Path, &path)
+	err = copier.Copy(&output, &t)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (path)", err)
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 
