@@ -28,9 +28,6 @@ func TestDeleteTable(t *testing.T) {
 				      - id: table-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("table-01")),
 			StatusCode: http.StatusOK,
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
@@ -56,9 +53,6 @@ func TestDeleteTable(t *testing.T) {
 				    tables:
 				      - id: table-01
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path:       makePath(testutils.GetUUID("table-02")),
 			StatusCode: http.StatusNotFound,

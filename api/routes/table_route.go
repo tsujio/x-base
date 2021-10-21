@@ -7,12 +7,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/tsujio/x-base/api/controllers/table"
-	"github.com/tsujio/x-base/api/middlewares"
 )
 
 func SetTableRoutes(router *mux.Router, db *gorm.DB) {
-	router.Use(middlewares.OrganizationIDMiddleware)
-
 	controller := table.TableController{
 		DB: db,
 	}

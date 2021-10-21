@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
-	"github.com/tsujio/x-base/api/middlewares"
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
 	"github.com/tsujio/x-base/api/utils"
@@ -16,13 +14,6 @@ import (
 )
 
 func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Request) {
-	// Get organization id
-	organizationID := middlewares.GetOrganizationID(r)
-	if organizationID == uuid.Nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Organization id not specified", nil)
-		return
-	}
-
 	// Decode request body
 	var input schemas.CreateTableInput
 	err := schemas.DecodeJSON(r.Body, &input)
@@ -34,7 +25,7 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 	// Create table
 	t := models.Table{
 		TableFilesystemEntry: models.TableFilesystemEntry{
-			OrganizationID: models.UUID(organizationID),
+			OrganizationID: models.UUID(input.OrganizationID),
 			Name:           input.Name,
 			ParentFolderID: (*models.UUID)(input.ParentFolderID),
 		},

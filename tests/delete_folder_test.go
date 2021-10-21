@@ -28,9 +28,6 @@ func TestDeleteFolder(t *testing.T) {
 				      - id: folder-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("folder-01")),
 			StatusCode: http.StatusOK,
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
@@ -56,9 +53,6 @@ func TestDeleteFolder(t *testing.T) {
 				    tables:
 				      - id: folder-01
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path:       makePath(testutils.GetUUID("folder-02")),
 			StatusCode: http.StatusNotFound,

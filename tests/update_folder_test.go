@@ -30,9 +30,6 @@ func TestUpdateFolder(t *testing.T) {
 				          - id: folder-03
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path: makePath(testutils.GetUUID("folder-02")),
 			Body: map[string]interface{}{
 				"name": "new-folder",
@@ -83,9 +80,6 @@ func TestUpdateFolder(t *testing.T) {
 				      - id: folder-02
 				      - id: folder-03
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path: makePath(testutils.GetUUID("folder-02")),
 			Body: map[string]interface{}{
@@ -139,9 +133,6 @@ func TestUpdateFolder(t *testing.T) {
 				          - id: folder-03
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path: makePath(testutils.GetUUID("folder-02")),
 			Body: map[string]interface{}{
 				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
@@ -183,9 +174,6 @@ func TestUpdateFolder(t *testing.T) {
 				organizations:
 				  - id: org1
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path: makePath(testutils.GetUUID("folder-01")),
 			Body: map[string]interface{}{

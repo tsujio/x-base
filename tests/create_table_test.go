@@ -21,11 +21,9 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
-				"name": "table-01",
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            "table-01",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -58,10 +56,8 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
+				"organization_id":  testutils.GetUUID("org1"),
 				"name":             "table-01",
 				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
 			},
@@ -101,10 +97,8 @@ func TestCreateTable(t *testing.T) {
 				          - id: folder-03
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
+				"organization_id":  testutils.GetUUID("org1"),
 				"name":             "table-01",
 				"parent_folder_id": testutils.GetUUID("folder-02"),
 			},
@@ -149,11 +143,9 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
-				"name": "",
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            "",
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -168,11 +160,9 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 100),
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            strings.Repeat("あ", 100),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -199,11 +189,9 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 101),
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            strings.Repeat("あ", 101),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{

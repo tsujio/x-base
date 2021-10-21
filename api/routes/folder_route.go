@@ -7,12 +7,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/tsujio/x-base/api/controllers/folder"
-	"github.com/tsujio/x-base/api/middlewares"
 )
 
 func SetFolderRoutes(router *mux.Router, db *gorm.DB) {
-	router.Use(middlewares.OrganizationIDMiddleware)
-
 	controller := folder.FolderController{
 		DB: db,
 	}

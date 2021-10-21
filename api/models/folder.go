@@ -30,12 +30,17 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 		parentPath = e.Path
 	}
 
-	parentFolderIDCond := func(db *gorm.DB) *gorm.DB {
-		if f.ID == UUID(uuid.Nil) {
-			return db.Where("parent_folder_id IS NULL")
-		} else {
-			return db.Where("parent_folder_id = ?", f.ID)
-		}
+	conds := []func(db *gorm.DB) *gorm.DB{
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("organization_id = ?", f.OrganizationID)
+		},
+		func(db *gorm.DB) *gorm.DB {
+			if f.ID == UUID(uuid.Nil) {
+				return db.Where("parent_folder_id IS NULL")
+			} else {
+				return db.Where("parent_folder_id = ?", f.ID)
+			}
+		},
 	}
 
 	var ret []interface{}
@@ -44,7 +49,7 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 	// Fetch folders
 	var folders []Folder
 	var folderTotalCount int64
-	err := db.Model(&Folder{}).Scopes(parentFolderIDCond).
+	err := db.Model(&Folder{}).Scopes(conds...).
 		Count(&folderTotalCount).
 		Order(utils.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&folders).
 		Error
@@ -75,7 +80,7 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 	}
 	var tables []Table
 	var tableTotalCount int64
-	err = db.Model(&Table{}).Scopes(parentFolderIDCond).
+	err = db.Model(&Table{}).Scopes(conds...).
 		Count(&tableTotalCount).
 		Order(utils.ToSnakeCase(opts.Sort)).Offset(offset).Limit(limit).Find(&tables).
 		Error

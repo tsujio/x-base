@@ -7,6 +7,7 @@ import (
 )
 
 type CreateFolderInput struct {
+	OrganizationID uuid.UUID  `json:"organization_id" validate:"required"`
 	Name           string     `json:"name" validate:"required,lte=100"`
 	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
 }
@@ -18,6 +19,7 @@ type UpdateFolderInput struct {
 
 type GetFolderChildrenInput struct {
 	PaginationInput
+	OrganizationID uuid.UUID `schema:"organizationId"`
 }
 
 type Folder struct {

@@ -30,9 +30,6 @@ func TestUpdateTable(t *testing.T) {
 				          - id: table-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
 				"name": "new-table",
@@ -83,9 +80,6 @@ func TestUpdateTable(t *testing.T) {
 				      - id: table-01
 				      - id: table-02
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
@@ -139,9 +133,6 @@ func TestUpdateTable(t *testing.T) {
 				          - id: table-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
 				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
@@ -183,9 +174,6 @@ func TestUpdateTable(t *testing.T) {
 				organizations:
 				  - id: org1
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{

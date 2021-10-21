@@ -28,9 +28,6 @@ func TestGetTable(t *testing.T) {
 				      - id: table-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("table-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -58,9 +55,6 @@ func TestGetTable(t *testing.T) {
 				    tables:
 				      - id: table-01
 				`)
-			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
 			},
 			Path:       makePath(testutils.GetUUID("table-02")),
 			StatusCode: http.StatusNotFound,

@@ -50,7 +50,12 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	// Fetch
 	var folder *models.Folder
 	if id == uuid.Nil {
+		if input.OrganizationID == uuid.Nil {
+			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Organization id is required for root folder", nil)
+			return
+		}
 		folder = &models.Folder{}
+		folder.OrganizationID = models.UUID(input.OrganizationID)
 	} else {
 		f, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
 		if err != nil {

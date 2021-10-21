@@ -35,9 +35,6 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: folder-02
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("folder-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -118,10 +115,13 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: folder-01
 				        children:
 				          - id: table-02
+				  - id: org2
+				    tables:
+				      - id: table-03
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			Query: url.Values{
+				"organizationId": []string{testutils.GetUUID("org1").String()},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusOK,
@@ -163,6 +163,20 @@ func TestGetFolderChildren(t *testing.T) {
 			},
 		},
 		{
+			Title: "Root folder without organizationId",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": "Organization id is required for root folder",
+			},
+		},
+		{
 			Title: "Fetche folders only",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -173,12 +187,10 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: folder-01
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Query: url.Values{
-				"page":     []string{"1"},
-				"pageSize": []string{"1"},
+				"organizationId": []string{testutils.GetUUID("org1").String()},
+				"page":           []string{"1"},
+				"pageSize":       []string{"1"},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusOK,
@@ -215,12 +227,10 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: folder-01
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Query: url.Values{
-				"page":     []string{"2"},
-				"pageSize": []string{"1"},
+				"organizationId": []string{testutils.GetUUID("org1").String()},
+				"page":           []string{"2"},
+				"pageSize":       []string{"1"},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusOK,
@@ -256,9 +266,6 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: folder-01
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("folder-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -275,8 +282,8 @@ func TestGetFolderChildren(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			Query: url.Values{
+				"organizationId": []string{testutils.GetUUID("org1").String()},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusOK,
@@ -294,9 +301,6 @@ func TestGetFolderChildren(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Path:       makePath(testutils.GetUUID("folder-01")),
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
@@ -313,11 +317,9 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: table-01
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Query: url.Values{
-				"pageSize": []string{"100"},
+				"organizationId": []string{testutils.GetUUID("org1").String()},
+				"pageSize":       []string{"100"},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusOK,
@@ -353,11 +355,9 @@ func TestGetFolderChildren(t *testing.T) {
 				      - id: table-01
 				`)
 			},
-			Header: http.Header{
-				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
-			},
 			Query: url.Values{
-				"pageSize": []string{"101"},
+				"organizationId": []string{testutils.GetUUID("org1").String()},
+				"pageSize":       []string{"101"},
 			},
 			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
 			StatusCode: http.StatusBadRequest,
