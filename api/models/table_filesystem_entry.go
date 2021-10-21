@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
 )
@@ -16,6 +17,13 @@ type TableFilesystemEntry struct {
 	ParentFolderID *UUID
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+func (e *TableFilesystemEntry) BeforeSave(*gorm.DB) error {
+	if e.ParentFolderID != nil && *e.ParentFolderID == UUID(uuid.Nil) {
+		e.ParentFolderID = nil
+	}
+	return nil
 }
 
 func (e *TableFilesystemEntry) GetTable(db *gorm.DB) (*Table, error) {

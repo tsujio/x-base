@@ -12,7 +12,11 @@ type Folder struct {
 	TableFilesystemEntry
 }
 
-func (f *Folder) BeforeSave(*gorm.DB) error {
+func (f *Folder) BeforeSave(db *gorm.DB) error {
+	if err := f.TableFilesystemEntry.BeforeSave(db); err != nil {
+		return err
+	}
+
 	f.Type = "folder"
 	return nil
 }

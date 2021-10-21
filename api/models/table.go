@@ -12,8 +12,13 @@ type Table struct {
 	TableFilesystemEntry
 }
 
-func (t *Table) BeforeSave(*gorm.DB) error {
+func (t *Table) BeforeSave(db *gorm.DB) error {
+	if err := t.TableFilesystemEntry.BeforeSave(db); err != nil {
+		return err
+	}
+
 	t.Type = "table"
+
 	return nil
 }
 

@@ -51,11 +51,7 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 		folder.Name = *input.Name
 	}
 	if input.ParentFolderID != nil {
-		if *input.ParentFolderID == uuid.Nil {
-			folder.ParentFolderID = nil
-		} else {
-			folder.ParentFolderID = (*models.UUID)(input.ParentFolderID)
-		}
+		folder.ParentFolderID = (*models.UUID)(input.ParentFolderID)
 	}
 	err = folder.Save(controller.DB)
 	if err != nil {
