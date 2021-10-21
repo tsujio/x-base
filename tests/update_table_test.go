@@ -184,7 +184,47 @@ func TestUpdateTable(t *testing.T) {
 				"message": "Not found",
 			},
 		},
-	}
+		{
+			Title: "Parent not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"parent_folder_id": testutils.GetUUID("folder-01"),
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": "Destination folder not found",
+			},
+		},
+		{
+			Title: "Parent's organization mismatch",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				  - id: org2
+				    tables:
+				      - id: folder-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"parent_folder_id": testutils.GetUUID("folder-01"),
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": "Cannot move to another organization",
+			},
+		}}
 
 	for _, tc := range testCases {
 		tc.Method = http.MethodPatch

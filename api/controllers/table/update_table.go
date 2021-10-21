@@ -46,6 +46,24 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Check destination folder
+	if input.ParentFolderID != nil && *input.ParentFolderID != uuid.Nil {
+		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
+		if err != nil {
+			if xerrors.Is(err, gorm.ErrRecordNotFound) {
+				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
+				return
+			}
+			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
+			return
+		}
+
+		if parent.OrganizationID != models.UUID(table.OrganizationID) {
+			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
+			return
+		}
+	}
+
 	// Update
 	if input.Name != nil {
 		table.Name = *input.Name

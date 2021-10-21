@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
+	"golang.org/x/xerrors"
+	"gorm.io/gorm"
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
@@ -20,6 +23,24 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
+	}
+
+	// Check parent folder
+	if input.ParentFolderID != nil && *input.ParentFolderID != uuid.Nil {
+		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
+		if err != nil {
+			if xerrors.Is(err, gorm.ErrRecordNotFound) {
+				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Parent folder not found", nil)
+				return
+			}
+			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get parent folder", err)
+			return
+		}
+
+		if parent.OrganizationID != models.UUID(input.OrganizationID) {
+			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot create folder as a child of another organization's folder", nil)
+			return
+		}
 	}
 
 	// Create folder

@@ -198,6 +198,45 @@ func TestFolderTable(t *testing.T) {
 				"message": testutils.Regexp{Pattern: `\bName\b`},
 			},
 		},
+		{
+			Title: "Parent not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Body: map[string]interface{}{
+				"organization_id":  testutils.GetUUID("org1"),
+				"name":             "folder-01",
+				"parent_folder_id": testutils.GetUUID("folder-02"),
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": "Parent folder not found",
+			},
+		},
+		{
+			Title: "Parent's organization mismatch",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				  - id: org2
+				    tables:
+				      - id: folder-01
+				`)
+			},
+			Body: map[string]interface{}{
+				"organization_id":  testutils.GetUUID("org1"),
+				"name":             "folder-02",
+				"parent_folder_id": testutils.GetUUID("folder-01"),
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": "Cannot create folder as a child of another organization's folder",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

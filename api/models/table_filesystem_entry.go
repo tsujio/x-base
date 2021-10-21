@@ -54,17 +54,18 @@ func (e *TableFilesystemEntry) ComputePath(db *gorm.DB) error {
 
 	var entries []TableFilesystemPathEntry
 	err := db.Raw(fmt.Sprintf(`
-	WITH recursive rec(id, organization_id, type, name, parent_folder_id, depth) AS (
-	    SELECT id, organization_id, type, name, parent_folder_id, 0
+	WITH recursive rec(id, organization_id, type, name, parent_folder_id, depth, all_ids) AS (
+	    SELECT id, organization_id, type, name, parent_folder_id, 0, JSON_ARRAY(id)
 	    FROM %s
 	    WHERE id = ?
 	    UNION ALL
-	    SELECT f.id, f.organization_id, f.type, f.name, f.parent_folder_id, rec.depth - 1
+	    SELECT f.id, f.organization_id, f.type, f.name, f.parent_folder_id, rec.depth - 1, JSON_ARRAY_APPEND(rec.all_ids, '$', f.id)
 	    FROM rec
 	    INNER JOIN folders AS f
 	    ON rec.organization_id = f.organization_id AND
 	       rec.parent_folder_id = f.id
-	    WHERE rec.parent_folder_id IS NOT NULL
+	    WHERE rec.parent_folder_id IS NOT NULL AND
+	          NOT JSON_CONTAINS(rec.all_ids, CAST(f.id AS JSON), '$')
 	)
 	SELECT id, type, name
 	FROM rec

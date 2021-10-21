@@ -46,6 +46,36 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 		return
 	}
 
+	// Check destination folder
+	if input.ParentFolderID != nil && *input.ParentFolderID != uuid.Nil {
+		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
+		if err != nil {
+			if xerrors.Is(err, gorm.ErrRecordNotFound) {
+				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
+				return
+			}
+			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
+			return
+		}
+
+		if parent.OrganizationID != models.UUID(folder.OrganizationID) {
+			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
+			return
+		}
+
+		// Path loop check
+		err = parent.ComputePath(controller.DB)
+		if err != nil {
+			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder's path", err)
+		}
+		for _, e := range parent.Path {
+			if e.ID == folder.ID {
+				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to sub folder", nil)
+				return
+			}
+		}
+	}
+
 	// Update
 	if input.Name != nil {
 		folder.Name = *input.Name
