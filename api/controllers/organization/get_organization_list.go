@@ -57,6 +57,9 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
+	if output.Organizations == nil {
+		output.Organizations = []schemas.Organization{}
+	}
 	output.TotalCount = totalCount
 	output.HasNext = hasNext
 

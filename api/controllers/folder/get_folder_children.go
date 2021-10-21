@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/copier"
+	"golang.org/x/xerrors"
+	"gorm.io/gorm"
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
@@ -45,13 +47,31 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		input.PageSize = &defaultPageSize
 	}
 
+	// Fetch
+	var folder *models.Folder
+	if id == uuid.Nil {
+		folder = &models.Folder{}
+	} else {
+		f, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
+		if err != nil {
+			if xerrors.Is(err, gorm.ErrRecordNotFound) {
+				utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+				return
+			}
+			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
+			return
+		}
+		folder = f
+	}
+
+	// Get children
 	opts := models.GetFolderChildrenOpts{
 		Sort:        "Name ASC, ID ASC",
 		Offset:      (*input.Page - 1) * *input.PageSize,
 		Limit:       *input.PageSize + 1,
 		ComputePath: true,
 	}
-	children, totalCount, err := models.GetFolderChildren(controller.DB, models.UUID(id), &opts)
+	children, totalCount, err := folder.GetChildren(controller.DB, &opts)
 	if err != nil {
 		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)
 		return
@@ -83,6 +103,9 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 			return
 		}
 		output.Children = append(output.Children, schema)
+	}
+	if output.Children == nil {
+		output.Children = []interface{}{}
 	}
 	output.TotalCount = totalCount
 	output.HasNext = hasNext

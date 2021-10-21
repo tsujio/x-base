@@ -20,10 +20,10 @@ type GetFolderChildrenOpts struct {
 	ComputePath   bool
 }
 
-func GetFolderChildren(db *gorm.DB, folderID UUID, opts *GetFolderChildrenOpts) ([]interface{}, int64, error) {
+func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interface{}, int64, error) {
 	var parentPath []TableFilesystemPathEntry
-	if opts.ComputePath && folderID != UUID(uuid.Nil) {
-		e := &TableFilesystemEntry{ID: UUID(folderID), Type: "folder"}
+	if opts.ComputePath && f.ID != UUID(uuid.Nil) {
+		e := &TableFilesystemEntry{ID: f.ID, Type: "folder"}
 		if err := e.ComputePath(db); err != nil {
 			return nil, 0, xerrors.Errorf("Failed to get path: %w", err)
 		}
@@ -31,14 +31,14 @@ func GetFolderChildren(db *gorm.DB, folderID UUID, opts *GetFolderChildrenOpts) 
 	}
 
 	parentFolderIDCond := func(db *gorm.DB) *gorm.DB {
-		if folderID == UUID(uuid.Nil) {
+		if f.ID == UUID(uuid.Nil) {
 			return db.Where("parent_folder_id IS NULL")
 		} else {
-			return db.Where("parent_folder_id = ?", folderID)
+			return db.Where("parent_folder_id = ?", f.ID)
 		}
 	}
 
-	ret := []interface{}{}
+	var ret []interface{}
 	var totalCount int64
 
 	// Fetch folders
@@ -65,11 +65,11 @@ func GetFolderChildren(db *gorm.DB, folderID UUID, opts *GetFolderChildrenOpts) 
 	totalCount += folderTotalCount
 
 	// Fetch tables
-	offset := opts.Offset - len(folders)
+	offset := opts.Offset - int(totalCount)
 	if offset < 0 {
 		offset = 0
 	}
-	limit := opts.Limit - len(folders)
+	limit := opts.Limit - len(ret)
 	if limit < 0 {
 		limit = 0
 	}
