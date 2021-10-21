@@ -25,9 +25,7 @@ func TestGetTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: table-01
-				        type: table
 				      - id: table-02
-				        type: table
 				`)
 			},
 			Header: http.Header{
@@ -59,7 +57,6 @@ func TestGetTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: table-01
-				        type: table
 				`)
 			},
 			Header: http.Header{

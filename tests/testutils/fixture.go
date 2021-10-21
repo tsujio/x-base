@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -116,34 +117,52 @@ func createOrganization(organization interface{}, path string) error {
 }
 
 func createTableFilesystem(entries interface{}, path string, organizationID, parentFolderID uuid.UUID) error {
-	if ents, ok := entries.([]interface{}); !ok {
+	ents, ok := entries.([]interface{})
+	if !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, entries)
-	} else {
-		for i, e := range ents {
-			if ent, ok := e.(map[interface{}]interface{}); !ok {
-				return fmt.Errorf("Invalid type: path=%s[%d], type=%T", path, i, e)
+	}
+	for i, e := range ents {
+		ent, ok := e.(map[interface{}]interface{})
+		if !ok {
+			return fmt.Errorf("Invalid type: path=%s[%d], type=%T", path, i, e)
+		}
+
+		var typ string
+		if tp, exists := ent["type"]; exists {
+			if t, ok := tp.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s[%d].type, type=%T", path, i, tp)
 			} else {
-				if typ, exists := ent["type"]; !exists {
-					return fmt.Errorf(".type required: path=%s[%d]", path, i)
-				} else {
-					if t, ok := typ.(string); !ok {
-						return fmt.Errorf("Invalid type: path=%s[%d].type, type=%T", path, i, typ)
-					} else {
-						switch t {
-						case "table":
-							if err := createTable(e, fmt.Sprintf("%s[%d]", path, i), organizationID, parentFolderID); err != nil {
-								return err
+				typ = t
+			}
+		} else {
+			for _, key := range []string{"id", "name"} {
+				if val, exists := ent[key]; exists {
+					if v, ok := val.(string); ok {
+						for _, t := range []string{"table", "folder"} {
+							if strings.HasPrefix(v, t) {
+								typ = t
 							}
-						case "folder":
-							if err := createFolder(e, fmt.Sprintf("%s[%d]", path, i), organizationID, parentFolderID); err != nil {
-								return err
-							}
-						default:
-							return fmt.Errorf("Invalid .type value: path=%s[%d]", path, i)
 						}
 					}
 				}
 			}
+		}
+
+		if typ == "" {
+			return fmt.Errorf(".type required: path=%s[%d]", path, i)
+		}
+
+		switch typ {
+		case "table":
+			if err := createTable(e, fmt.Sprintf("%s[%d]", path, i), organizationID, parentFolderID); err != nil {
+				return err
+			}
+		case "folder":
+			if err := createFolder(e, fmt.Sprintf("%s[%d]", path, i), organizationID, parentFolderID); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("Invalid .type value: path=%s[%d]", path, i)
 		}
 	}
 	return nil

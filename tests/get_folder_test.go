@@ -25,9 +25,7 @@ func TestGetFolder(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				      - id: folder-02
-				        type: folder
 				`)
 			},
 			Header: http.Header{
@@ -59,7 +57,6 @@ func TestGetFolder(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				`)
 			},
 			Header: http.Header{

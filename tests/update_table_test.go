@@ -25,12 +25,9 @@ func TestUpdateTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				        children:
 				          - id: table-01
-				            type: table
 				          - id: table-02
-				            type: table
 				`)
 			},
 			Header: http.Header{
@@ -83,11 +80,8 @@ func TestUpdateTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				      - id: table-01
-				        type: table
 				      - id: table-02
-				        type: table
 				`)
 			},
 			Header: http.Header{
@@ -140,12 +134,9 @@ func TestUpdateTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				        children:
 				          - id: table-01
-				            type: table
 				          - id: table-02
-				            type: table
 				`)
 			},
 			Header: http.Header{

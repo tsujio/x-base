@@ -25,9 +25,7 @@ func TestDeleteTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: table-01
-				        type: table
 				      - id: table-02
-				        type: table
 				`)
 			},
 			Header: http.Header{
@@ -57,7 +55,6 @@ func TestDeleteTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: table-01
-				        type: table
 				`)
 			},
 			Header: http.Header{

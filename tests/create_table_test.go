@@ -95,12 +95,9 @@ func TestCreateTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: folder-01
-				        type: folder
 				        children:
 				          - id: folder-02
-				            type: folder
 				          - id: folder-03
-				            type: folder				        
 				`)
 			},
 			Header: http.Header{
