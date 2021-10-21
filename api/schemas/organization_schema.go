@@ -11,11 +11,11 @@ type GetOrganizationListInput struct {
 }
 
 type CreateOrganizationInput struct {
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name" validate:"required,lte=100"`
 }
 
 type UpdateOrganizationInput struct {
-	Name *string `json:"name" validate:"omitempty,gt=0"`
+	Name *string `json:"name" validate:"omitempty,gt=0,lte=100"`
 }
 
 type Organization struct {

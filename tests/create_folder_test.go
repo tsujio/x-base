@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"gorm.io/gorm"
@@ -153,6 +154,56 @@ func TestFolderTable(t *testing.T) {
 			},
 			Body: map[string]interface{}{
 				"name": "",
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `\bName\b`},
+			},
+		},
+		{
+			Title: "Name length=100",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Header: http.Header{
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			},
+			Body: map[string]interface{}{
+				"name": strings.Repeat("あ", 100),
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":              testutils.UUID{},
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            strings.Repeat("あ", 100),
+				"type":            "folder",
+				"path": []interface{}{
+					map[string]interface{}{
+						"id":   testutils.UUID{},
+						"name": strings.Repeat("あ", 100),
+						"type": "folder",
+					},
+				},
+				"created_at": testutils.Timestamp{},
+				"updated_at": testutils.Timestamp{},
+			},
+		},
+		{
+			Title: "Name length=101",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Header: http.Header{
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			},
+			Body: map[string]interface{}{
+				"name": strings.Repeat("あ", 101),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{

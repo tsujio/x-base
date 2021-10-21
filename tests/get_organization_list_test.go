@@ -92,8 +92,7 @@ func TestGetOrganizationList(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"page":     []string{"3"},
-				"pageSize": []string{"1"},
+				"page": []string{"3"},
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -111,7 +110,6 @@ func TestGetOrganizationList(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"page":     []string{"1"},
 				"pageSize": []string{"0"},
 			},
 			StatusCode: http.StatusOK,
@@ -131,8 +129,7 @@ func TestGetOrganizationList(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"page":     []string{"0"},
-				"pageSize": []string{"1"},
+				"page": []string{"0"},
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -149,8 +146,48 @@ func TestGetOrganizationList(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"page":     []string{"1"},
 				"pageSize": []string{"-1"},
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `\bPageSize\b`},
+			},
+		},
+		{
+			Title: "pageSize=100",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				`)
+			},
+			Query: url.Values{
+				"pageSize": []string{"100"},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"organizations": []interface{}{
+					map[string]interface{}{
+						"id":         testutils.GetUUID("organization-01"),
+						"name":       "organization-01",
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+				},
+				"total_count": float64(1),
+				"has_next":    false,
+			},
+		},
+		{
+			Title: "pageSize=101",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				`)
+			},
+			Query: url.Values{
+				"pageSize": []string{"101"},
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{

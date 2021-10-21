@@ -57,7 +57,7 @@ type APITestCase struct {
 	Header     http.Header
 	Body       map[string]interface{}
 	StatusCode int
-	Output     map[string]interface{}
+	Output     interface{}
 	PostCheck  func(*APITestCase, http.Handler, map[string]interface{})
 	Context    map[string]interface{}
 }

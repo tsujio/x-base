@@ -303,6 +303,68 @@ func TestGetFolderChildren(t *testing.T) {
 				"message": "Not found",
 			},
 		},
+		{
+			Title: "pageSize=100",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Header: http.Header{
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			},
+			Query: url.Values{
+				"pageSize": []string{"100"},
+			},
+			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"children": []interface{}{
+					map[string]interface{}{
+						"id":              testutils.GetUUID("table-01"),
+						"organization_id": testutils.GetUUID("org1"),
+						"name":            "table-01",
+						"type":            "table",
+						"path": []interface{}{
+							map[string]interface{}{
+								"id":   testutils.GetUUID("table-01"),
+								"name": "table-01",
+								"type": "table",
+							},
+						},
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+				},
+				"total_count": float64(1),
+				"has_next":    false,
+			},
+		},
+		{
+			Title: "pageSize=101",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Header: http.Header{
+				"X-ORGANIZATION-ID": []string{testutils.GetUUID("org1").String()},
+			},
+			Query: url.Values{
+				"pageSize": []string{"101"},
+			},
+			Path:       makePath(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `\bPageSize\b`},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
