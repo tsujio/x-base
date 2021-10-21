@@ -22,6 +22,10 @@ func (e *TableFilesystemEntry) GetTable(db *gorm.DB) (*Table, error) {
 	return (&Table{TableFilesystemEntry: *e}).Get(db)
 }
 
+func (e *TableFilesystemEntry) GetFolder(db *gorm.DB) (*Folder, error) {
+	return (&Folder{TableFilesystemEntry: *e}).Get(db)
+}
+
 type TableFilesystemPathEntry struct {
 	ID   UUID
 	Type string

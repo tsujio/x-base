@@ -30,6 +30,10 @@ func CreateRouter(db *gorm.DB) http.Handler {
 	tableRouter := router.PathPrefix("/tables").Subrouter()
 	routes.SetTableRoutes(tableRouter, db)
 
+	// Folder routes
+	folderRouter := router.PathPrefix("/folders").Subrouter()
+	routes.SetFolderRoutes(folderRouter, db)
+
 	handler := cors.AllowAll().Handler(router)
 
 	return handler
