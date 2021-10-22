@@ -155,6 +155,7 @@ paths:
       tags:
         - Folder
       summary: Get folder's children
+      description: Specify `00000000-0000-0000-0000-000000000000` as `folderId` path parameter and target organization id as `organizationId` query parameter for retrieving entries at the root folder of the organization.
       responses:
         "200":
           description: Folder's children
@@ -345,6 +346,7 @@ definitions:
       name:
         type: string
       parent_folder_id:
+        description: Specify `00000000-0000-0000-0000-000000000000` to move to the root folder
         type: string
         format: uuid
   Table:
@@ -378,6 +380,7 @@ definitions:
       name:
         type: string
       parent_folder_id:
+        description: Specify `00000000-0000-0000-0000-000000000000` to move to the root folder
         type: string
         format: uuid
   Folder:
