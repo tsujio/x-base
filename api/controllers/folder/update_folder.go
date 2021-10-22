@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "folderID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
 		return
 	}
 
@@ -31,7 +31,7 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	var input schemas.UpdateFolderInput
 	err = schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -39,10 +39,10 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	folder, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
 		return
 	}
 
@@ -51,26 +51,26 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
 		if err != nil {
 			if xerrors.Is(err, gorm.ErrRecordNotFound) {
-				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
+				responses.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
 				return
 			}
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
 			return
 		}
 
 		if parent.OrganizationID != models.UUID(folder.OrganizationID) {
-			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
 			return
 		}
 
 		// Path loop check
 		err = parent.ComputePath(controller.DB)
 		if err != nil {
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder's path", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder's path", err)
 		}
 		for _, e := range parent.Path {
 			if e.ID == folder.ID {
-				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to sub folder", nil)
+				responses.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to sub folder", nil)
 				return
 			}
 		}
@@ -85,7 +85,7 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	}
 	err = folder.Save(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid to save folder", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid to save folder", err)
 		return
 	}
 
@@ -93,12 +93,12 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	var output schemas.Folder
 	err = folder.ComputePath(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
 	err = copier.Copy(&output, &folder)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

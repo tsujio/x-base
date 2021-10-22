@@ -12,7 +12,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -21,7 +21,7 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 	var input schemas.CreateFolderInput
 	err := schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -30,15 +30,15 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
 		if err != nil {
 			if xerrors.Is(err, gorm.ErrRecordNotFound) {
-				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Parent folder not found", nil)
+				responses.SendErrorResponse(w, r, http.StatusBadRequest, "Parent folder not found", nil)
 				return
 			}
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get parent folder", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get parent folder", err)
 			return
 		}
 
 		if parent.OrganizationID != models.UUID(input.OrganizationID) {
-			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot create folder as a child of another organization's folder", nil)
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot create folder as a child of another organization's folder", nil)
 			return
 		}
 	}
@@ -53,7 +53,7 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 	}
 	err = f.Create(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create folder", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create folder", err)
 		return
 	}
 
@@ -61,12 +61,12 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 	var output schemas.Folder
 	err = f.ComputePath(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
 	err = copier.Copy(&output, &f)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

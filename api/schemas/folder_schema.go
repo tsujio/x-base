@@ -1,6 +1,7 @@
 package schemas
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,6 +24,33 @@ type GetFolderChildrenInput struct {
 }
 
 type Folder struct {
+	TableFilesystemEntry
+}
+
+type FolderChildren struct {
+	PaginatedList
+	Children []FolderChild `json:"children"`
+}
+
+func (c FolderChildren) MarshalJSON() ([]byte, error) {
+	if c.Children == nil {
+		c.Children = []FolderChild{}
+	}
+	type Alias FolderChildren
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(c)})
+}
+
+type FolderChild TableFilesystemEntry
+
+func (c FolderChild) MarshalJSON() ([]byte, error) {
+	if c.Path == nil {
+		c.Path = []TableFilesystemPathEntry{}
+	}
+	type Alias FolderChild
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(c)})
+}
+
+type TableFilesystemEntry struct {
 	ID             uuid.UUID                  `json:"id"`
 	OrganizationID uuid.UUID                  `json:"organization_id"`
 	Type           string                     `json:"type"`
@@ -32,7 +60,8 @@ type Folder struct {
 	UpdatedAt      time.Time                  `json:"updated_at"`
 }
 
-type FolderChildren struct {
-	PaginatedList
-	Children []interface{} `json:"children"`
+type TableFilesystemPathEntry struct {
+	ID   uuid.UUID `json:"id"`
+	Type string    `json:"type"`
+	Name string    `json:"name"`
 }

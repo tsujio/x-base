@@ -9,7 +9,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -18,7 +18,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	var input schemas.CreateOrganizationInput
 	err := schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -28,7 +28,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	}
 	err = o.Create(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create organization", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create organization", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	var output schemas.Organization
 	err = copier.Copy(&output, &o)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

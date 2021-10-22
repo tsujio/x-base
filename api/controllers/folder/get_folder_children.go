@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -28,7 +28,7 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "folderID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	var input schemas.GetFolderChildrenInput
 	err = schemas.DecodeQuery(r.URL.Query(), &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	var folder *models.Folder
 	if id == uuid.Nil {
 		if input.OrganizationID == uuid.Nil {
-			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Organization id is required for root folder", nil)
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Organization id is required for root folder", nil)
 			return
 		}
 		folder = &models.Folder{}
@@ -60,10 +60,10 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		f, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
 		if err != nil {
 			if xerrors.Is(err, gorm.ErrRecordNotFound) {
-				utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+				responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 				return
 			}
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
 			return
 		}
 		folder = f
@@ -78,7 +78,7 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	}
 	children, totalCount, err := folder.GetChildren(controller.DB, &opts)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)
 		return
 	}
 	hasNext := len(children) > *input.PageSize
@@ -89,28 +89,21 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	// Convert to output schema
 	var output schemas.FolderChildren
 	for _, child := range children {
-		var schema interface{}
+		var schema schemas.FolderChild
 		switch c := child.(type) {
 		case models.Table:
-			var table schemas.Table
-			if err := copier.Copy(&table, &c); err != nil {
-				utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+			if err := copier.Copy(&schema, &c); err != nil {
+				responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 			}
-			schema = table
 		case models.Folder:
-			var folder schemas.Folder
-			if err := copier.Copy(&folder, &c); err != nil {
-				utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+			if err := copier.Copy(&schema, &c); err != nil {
+				responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 			}
-			schema = folder
 		default:
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (invalid type)", nil)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (invalid type)", nil)
 			return
 		}
 		output.Children = append(output.Children, schema)
-	}
-	if output.Children == nil {
-		output.Children = []interface{}{}
 	}
 	output.TotalCount = totalCount
 	output.HasNext = hasNext

@@ -12,7 +12,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -21,7 +21,7 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 	var input schemas.CreateTableInput
 	err := schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -30,43 +30,79 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
 		if err != nil {
 			if xerrors.Is(err, gorm.ErrRecordNotFound) {
-				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Parent folder not found", nil)
+				responses.SendErrorResponse(w, r, http.StatusBadRequest, "Parent folder not found", nil)
 				return
 			}
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get parent folder", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get parent folder", err)
 			return
 		}
 
 		if parent.OrganizationID != models.UUID(input.OrganizationID) {
-			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot create table as a child of another organization's folder", nil)
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot create table as a child of another organization's folder", nil)
 			return
 		}
 	}
 
-	// Create table
-	t := models.Table{
-		TableFilesystemEntry: models.TableFilesystemEntry{
-			OrganizationID: models.UUID(input.OrganizationID),
-			Name:           input.Name,
-			ParentFolderID: (*models.UUID)(input.ParentFolderID),
-		},
-	}
-	err = t.Create(controller.DB)
+	var table *models.Table
+	err = controller.DB.Transaction(func(tx *gorm.DB) error {
+		// Create table
+		t := &models.Table{
+			TableFilesystemEntry: models.TableFilesystemEntry{
+				OrganizationID: models.UUID(input.OrganizationID),
+				Name:           input.Name,
+				ParentFolderID: (*models.UUID)(input.ParentFolderID),
+			},
+		}
+		err = t.Create(tx)
+		if err != nil {
+			return xerrors.Errorf("Failed to create table: %w", err)
+		}
+
+		// Create columns
+		if len(input.Columns) > 0 {
+			for i, c := range input.Columns {
+				col := &models.Column{
+					TableID: t.ID,
+					Index:   i,
+					Name:    c.Name,
+					Type:    c.Type,
+				}
+				err := col.Create(tx, true)
+				if err != nil {
+					return xerrors.Errorf("Failed to create column: %w", err)
+				}
+			}
+
+			err := models.CanonicalizeColumnIndices(tx, t.ID)
+			if err != nil {
+				return xerrors.Errorf("Failed to canonicalize column indices: %w", err)
+			}
+		}
+
+		table = t
+
+		return nil
+	})
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create table", err)
 		return
 	}
 
 	// Convert to output schema
 	var output schemas.Table
-	err = t.ComputePath(controller.DB)
+	err = table.ComputePath(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
-	err = copier.Copy(&output, &t)
+	err = table.FetchColumns(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to fetch columns", err)
+		return
+	}
+	err = copier.Copy(&output, &table)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

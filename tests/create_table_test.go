@@ -38,6 +38,7 @@ func TestCreateTable(t *testing.T) {
 						"type": "table",
 					},
 				},
+				"columns":    []interface{}{},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
@@ -74,6 +75,7 @@ func TestCreateTable(t *testing.T) {
 						"type": "table",
 					},
 				},
+				"columns":    []interface{}{},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
@@ -125,6 +127,7 @@ func TestCreateTable(t *testing.T) {
 						"type": "table",
 					},
 				},
+				"columns":    []interface{}{},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
@@ -177,6 +180,7 @@ func TestCreateTable(t *testing.T) {
 						"type": "table",
 					},
 				},
+				"columns":    []interface{}{},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
@@ -235,6 +239,65 @@ func TestCreateTable(t *testing.T) {
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
 				"message": "Cannot create table as a child of another organization's folder",
+			},
+		},
+		{
+			Title: "Columns",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Body: map[string]interface{}{
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            "table-01",
+				"columns": []interface{}{
+					map[string]interface{}{
+						"name": "column-01",
+						"type": "string",
+					},
+					map[string]interface{}{
+						"name": "column-02",
+						"type": "string",
+					},
+				},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":              testutils.UUID{},
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            "table-01",
+				"type":            "table",
+				"path": []interface{}{
+					map[string]interface{}{
+						"id":   testutils.UUID{},
+						"name": "table-01",
+						"type": "table",
+					},
+				},
+				"columns": []interface{}{
+					map[string]interface{}{
+						"id":         testutils.UUID{},
+						"table_id":   testutils.UUID{},
+						"index":      float64(0),
+						"name":       "column-01",
+						"type":       "string",
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+					map[string]interface{}{
+						"id":         testutils.UUID{},
+						"table_id":   testutils.UUID{},
+						"index":      float64(1),
+						"name":       "column-02",
+						"type":       "string",
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+				},
+				"created_at": testutils.Timestamp{},
+				"updated_at": testutils.Timestamp{},
 			},
 		},
 	}

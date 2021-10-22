@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *TableController) GetTable(w http.ResponseWriter, r *http.Reque
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "tableID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
 		return
 	}
 
@@ -31,10 +31,10 @@ func (controller *TableController) GetTable(w http.ResponseWriter, r *http.Reque
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
 
@@ -42,12 +42,12 @@ func (controller *TableController) GetTable(w http.ResponseWriter, r *http.Reque
 	var output schemas.Table
 	err = table.ComputePath(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
 	err = copier.Copy(&output, &table)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

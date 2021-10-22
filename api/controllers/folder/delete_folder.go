@@ -10,7 +10,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 )
 
 func (controller *FolderController) DeleteFolder(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +19,7 @@ func (controller *FolderController) DeleteFolder(w http.ResponseWriter, r *http.
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "folderID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
 		return
 	}
 
@@ -27,17 +27,17 @@ func (controller *FolderController) DeleteFolder(w http.ResponseWriter, r *http.
 	folder, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get folder", err)
 		return
 	}
 
 	// Delete
 	err = folder.Delete(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to delete folder", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to delete folder", err)
 		return
 	}
 }

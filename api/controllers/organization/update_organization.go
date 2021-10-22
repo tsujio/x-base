@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "organizationID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
 		return
 	}
 
@@ -31,7 +31,7 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	var input schemas.UpdateOrganizationInput
 	err = schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -39,10 +39,10 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	}
 	err = organization.Save(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to save organization", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to save organization", err)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	var output schemas.Organization
 	err = copier.Copy(&output, &organization)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

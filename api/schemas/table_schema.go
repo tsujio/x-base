@@ -1,15 +1,16 @@
 package schemas
 
 import (
-	"time"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
 
 type CreateTableInput struct {
-	OrganizationID uuid.UUID  `json:"organization_id" validate:"required"`
-	Name           string     `json:"name" validate:"required,lte=100"`
-	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+	OrganizationID uuid.UUID           `json:"organization_id" validate:"required"`
+	Name           string              `json:"name" validate:"required,lte=100"`
+	ParentFolderID *uuid.UUID          `json:"parent_folder_id"`
+	Columns        []CreateColumnInput `json:"columns"`
 }
 
 type UpdateTableInput struct {
@@ -18,17 +19,17 @@ type UpdateTableInput struct {
 }
 
 type Table struct {
-	ID             uuid.UUID                  `json:"id"`
-	OrganizationID uuid.UUID                  `json:"organization_id"`
-	Type           string                     `json:"type"`
-	Name           string                     `json:"name"`
-	Path           []TableFilesystemPathEntry `json:"path"`
-	CreatedAt      time.Time                  `json:"created_at"`
-	UpdatedAt      time.Time                  `json:"updated_at"`
+	TableFilesystemEntry
+	Columns []Column `json:"columns"`
 }
 
-type TableFilesystemPathEntry struct {
-	ID   uuid.UUID `json:"id"`
-	Type string    `json:"type"`
-	Name string    `json:"name"`
+func (t Table) MarshalJSON() ([]byte, error) {
+	if t.Columns == nil {
+		t.Columns = []Column{}
+	}
+	if t.Path == nil {
+		t.Path = []TableFilesystemPathEntry{}
+	}
+	type Alias Table
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(t)})
 }

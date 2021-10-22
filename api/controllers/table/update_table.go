@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "tableID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
 		return
 	}
 
@@ -31,7 +31,7 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	var input schemas.UpdateTableInput
 	err = schemas.DecodeJSON(r.Body, &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -39,10 +39,10 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
 
@@ -51,15 +51,15 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 		parent, err := (&models.TableFilesystemEntry{ID: models.UUID(*input.ParentFolderID)}).GetFolder(controller.DB)
 		if err != nil {
 			if xerrors.Is(err, gorm.ErrRecordNotFound) {
-				utils.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
+				responses.SendErrorResponse(w, r, http.StatusBadRequest, "Destination folder not found", nil)
 				return
 			}
-			utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get destination folder", err)
 			return
 		}
 
 		if parent.OrganizationID != models.UUID(table.OrganizationID) {
-			utils.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Cannot move to another organization", nil)
 			return
 		}
 	}
@@ -73,7 +73,7 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	}
 	err = table.Save(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid to save table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid to save table", err)
 		return
 	}
 
@@ -81,12 +81,12 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	var output schemas.Table
 	err = table.ComputePath(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
 	err = copier.Copy(&output, &table)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

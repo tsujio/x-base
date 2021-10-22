@@ -42,6 +42,7 @@ func TestGetTable(t *testing.T) {
 						"type": "table",
 					},
 				},
+				"columns":    []interface{}{},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},

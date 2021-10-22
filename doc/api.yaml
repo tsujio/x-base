@@ -103,6 +103,56 @@ paths:
       responses:
         "200":
           description: Deleted
+  /tables/{tableId}/columns:
+    parameters:
+      - $ref: "#/parameters/tableId"
+    post:
+      tags:
+        - Table
+      summary: Create column
+      parameters:
+        - $ref: "#/parameters/createColumnInput"
+      responses:
+        "200":
+          description: Created column
+          schema:
+            $ref: "#/definitions/Column"
+  /tables/{tableId}/columns/{columnId}:
+    parameters:
+      - $ref: "#/parameters/tableId"
+      - $ref: "#/parameters/columnId"
+    patch:
+      tags:
+        - Table
+      summary: Update column
+      parameters:
+        - $ref: "#/parameters/updateColumnInput"
+      responses:
+        "200":
+          description: Updated column
+          schema:
+            $ref: "#/definitions/Column"
+    delete:
+      tags:
+        - Table
+      summary: Delete column
+      responses:
+        "200":
+          description: Deleted
+  /tables/{tableId}/columns/reorder:
+    parameters:
+      - $ref: "#/parameters/tableId"
+    post:
+      tags:
+        - Table
+      summary: Reorder columns
+      parameters:
+        - $ref: "#/parameters/reorderColumnInput"
+      responses:
+        "200":
+          description: Reordered columns
+          schema:
+            $ref: "#/definitions/ColumnList"
   /folders:
     post:
       tags:
@@ -177,6 +227,11 @@ parameters:
     name: tableId
     required: true
     type: string
+  columnId:
+    in: path
+    name: columnId
+    required: true
+    type: string
   folderId:
     in: path
     name: folderId
@@ -216,6 +271,24 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/UpdateTableInput"
+  createColumnInput:
+    in: body
+    name: createColumnInput
+    required: true
+    schema:
+      $ref: "#/definitions/CreateColumnInput"
+  updateColumnInput:
+    in: body
+    name: updateColumnInput
+    required: true
+    schema:
+      $ref: "#/definitions/UpdateColumnInput"
+  reorderColumnInput:
+    in: body
+    name: reorderColumnInput
+    required: true
+    schema:
+      $ref: "#/definitions/ReorderColumnInput"
   createFolderInput:
     in: body
     name: createFolderInput
@@ -340,6 +413,10 @@ definitions:
       parent_folder_id:
         type: string
         format: uuid
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/CreateColumnInput"
   UpdateTableInput:
     type: object
     properties:
@@ -360,6 +437,77 @@ definitions:
             type: array
             items:
               $ref: "#/definitions/Column"
+  ColumnType:
+    type: string
+    enum: ["string"]
+  CreateColumnInput:
+    type: object
+    required:
+      - name
+    properties:
+      index:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: "#/definitions/ColumnType"
+  UpdateColumnInput:
+    type: object
+    properties:
+      index:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: "#/definitions/ColumnType"
+  ReorderColumnInput:
+    type: object
+    required:
+      - order
+    properties:
+      order:
+        type: array
+        items:
+          type: string
+          format: uuid
+  Column:
+    type: object
+    required:
+      - id
+      - table_id
+      - index
+      - name
+      - type
+      - created_at
+      - updated_at
+    properties:
+      id:
+        type: string
+        format: uuid
+      table_id:
+        type: string
+        format: uuid
+      index:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: "#/definitions/ColumnType"
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  ColumnList:
+    type: object
+    required:
+      - columns
+    properties:
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/Column"
   CreateFolderInput:
     type: object
     required:
@@ -397,26 +545,3 @@ definitions:
             type: array
             items:
               $ref: "#/definitions/TableFilesystemEntry"
-  Column:
-    type: object
-    required:
-      - id
-      - name
-      - type
-      - created_at
-      - updated_at
-    properties:
-      id:
-        type: string
-        format: uuid
-      name:
-        type: string
-      type:
-        type: string
-        enum: ["string"]
-      created_at:
-        type: string
-        format: date-time
-      updated_at:
-        type: string
-        format: date-time

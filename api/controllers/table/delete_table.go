@@ -10,7 +10,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 )
 
 func (controller *TableController) DeleteTable(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +19,7 @@ func (controller *TableController) DeleteTable(w http.ResponseWriter, r *http.Re
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "tableID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid table id", err)
 		return
 	}
 
@@ -27,17 +27,17 @@ func (controller *TableController) DeleteTable(w http.ResponseWriter, r *http.Re
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
 
 	// Delete
 	err = table.Delete(controller.DB)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to delete table", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to delete table", err)
 		return
 	}
 }

@@ -13,7 +13,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 	var id uuid.UUID
 	err := schemas.DecodeUUID(vars, "organizationID", &id)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid organization id", err)
 		return
 	}
 
@@ -31,10 +31,10 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			utils.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organization", err)
 		return
 	}
 
@@ -42,7 +42,7 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 	var output schemas.Organization
 	err = copier.Copy(&output, &organization)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
 	}
 

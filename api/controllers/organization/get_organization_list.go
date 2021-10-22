@@ -9,7 +9,7 @@ import (
 
 	"github.com/tsujio/x-base/api/models"
 	"github.com/tsujio/x-base/api/schemas"
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/responses"
 	"github.com/tsujio/x-base/logging"
 )
 
@@ -23,7 +23,7 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	var input schemas.GetOrganizationListInput
 	err := schemas.DecodeQuery(r.URL.Query(), &input)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
 		return
 	}
 
@@ -42,7 +42,7 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	}
 	organizations, totalCount, err := models.GetOrganizationList(controller.DB, &opts)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organizations", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organizations", err)
 		return
 	}
 	hasNext := len(organizations) > *input.PageSize
@@ -54,11 +54,8 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	var output schemas.OrganizationList
 	err = copier.Copy(&output.Organizations, &organizations)
 	if err != nil {
-		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
-	}
-	if output.Organizations == nil {
-		output.Organizations = []schemas.Organization{}
 	}
 	output.TotalCount = totalCount
 	output.HasNext = hasNext
