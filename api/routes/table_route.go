@@ -18,4 +18,8 @@ func SetTableRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/{tableID}", controller.GetTable).Methods(http.MethodGet)
 	router.HandleFunc("/{tableID}", controller.UpdateTable).Methods(http.MethodPatch)
 	router.HandleFunc("/{tableID}", controller.DeleteTable).Methods(http.MethodDelete)
+	router.HandleFunc("/{tableID}/columns", controller.CreateColumn).Methods(http.MethodPost)
+	router.HandleFunc("/{tableID}/columns/{columnID}", controller.UpdateColumn).Methods(http.MethodPatch)
+	router.HandleFunc("/{tableID}/columns/{columnID}", controller.DeleteColumn).Methods(http.MethodDelete)
+	router.HandleFunc("/{tableID}/columns/reorder", controller.ReorderColumn).Methods(http.MethodPost)
 }

@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const ColumnTailIndex = 9999
+
 type Column struct {
 	ID        UUID
 	TableID   UUID
@@ -28,31 +30,24 @@ func IsValidColumnType(typ string) bool {
 	return false
 }
 
-func (c *Column) BeforeSave(db *gorm.DB) error {
-	if !IsValidColumnType(c.Type) {
-		return fmt.Errorf("Invalid column type (%s)", c.Type)
-	}
-
-	if err := db.Model(c).
-		Where("table_id = ? AND `index` >= ?", c.TableID, c.Index).
-		UpdateColumn("`index`", gorm.Expr("`index` + ?", 1)).
+func moveColumnIndicesToTemporaryAddress(db *gorm.DB, tableID UUID) error {
+	if err := db.Model(&Column{}).
+		Where("table_id = ?", tableID).
+		Order("`index` DESC").
+		UpdateColumn("`index`", gorm.Expr("`index` + ?", ColumnTailIndex)).
 		Error; err != nil {
-		return err
+		return xerrors.Errorf("Failed to execute query: %w", err)
 	}
-
 	return nil
 }
 
 func CanonicalizeColumnIndices(db *gorm.DB, tableID UUID) error {
 	return db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&Column{}).
-			Where("table_id = ?", tableID).
-			UpdateColumn("`index`", gorm.Expr("`index` + ?", 9999)).
-			Error; err != nil {
-			return err
+		if err := moveColumnIndicesToTemporaryAddress(tx, tableID); err != nil {
+			return xerrors.Errorf("Failed to shift column indices: %w", err)
 		}
 
-		return tx.Exec(`
+		err := tx.Exec(`
 		UPDATE columns AS c
 		INNER JOIN (
 		    SELECT id, ROW_NUMBER() OVER (PARTITION BY table_id ORDER BY `+"`index`"+`) - 1 AS `+"`index`"+`
@@ -63,7 +58,63 @@ func CanonicalizeColumnIndices(db *gorm.DB, tableID UUID) error {
 		SET c.`+"`index`"+` = t.`+"`index`"+`
 		WHERE c.table_id = ?
 		`, tableID, tableID).Error
+		if err != nil {
+			return xerrors.Errorf("Failed to reset column indices: %w", err)
+		}
+
+		return nil
 	})
+}
+
+func ReorderColumns(db *gorm.DB, tableID UUID, order []UUID) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := moveColumnIndicesToTemporaryAddress(tx, tableID); err != nil {
+			return xerrors.Errorf("Failed to shift column indices: %w", err)
+		}
+
+		var cases string
+		var params []interface{}
+		for i, id := range order {
+			cases += " WHEN ? THEN ? "
+			params = append(params, id, i)
+			if i > 0 && (i%10 == 0 || i == len(order)-1) {
+				params = append(params, tableID)
+				err := tx.Exec(fmt.Sprintf(`
+				UPDATE columns
+				SET `+"`index`"+` = CASE id %s ELSE `+"`index`"+` END
+				WHERE table_id = ?
+				`, cases), params...).Error
+				if err != nil {
+					return xerrors.Errorf("Failed to update column indices: %w", err)
+				}
+				cases = ""
+				params = []interface{}{}
+			}
+		}
+
+		if err := CanonicalizeColumnIndices(tx, tableID); err != nil {
+			return xerrors.Errorf("Failed to canonicalize column indices: %w", err)
+		}
+
+		return nil
+	})
+}
+
+func (c *Column) BeforeSave(db *gorm.DB) error {
+	if !IsValidColumnType(c.Type) {
+		return fmt.Errorf("Invalid column type (%s)", c.Type)
+	}
+
+	// Shift indices
+	if err := db.Model(&Column{}).
+		Where("table_id = ? AND `index` >= ?", c.TableID, c.Index).
+		Order("`index` DESC").
+		UpdateColumn("`index`", gorm.Expr("`index` + ?", 1)).
+		Error; err != nil {
+		return xerrors.Errorf("Failed to shift column indices: %w", err)
+	}
+
+	return nil
 }
 
 func (c *Column) Create(db *gorm.DB, skipCanonicalizeIndices bool) error {
@@ -82,8 +133,13 @@ func (c *Column) Create(db *gorm.DB, skipCanonicalizeIndices bool) error {
 
 	if !skipCanonicalizeIndices {
 		if err := CanonicalizeColumnIndices(db, c.TableID); err != nil {
-			return err
+			return xerrors.Errorf("Failed to canonicalize column indices: %w", err)
 		}
+		col, err := c.Get(db)
+		if err != nil {
+			return xerrors.Errorf("Failed to get column: %w", err)
+		}
+		*c = *col
 	}
 
 	return nil
@@ -100,8 +156,13 @@ func (c *Column) Save(db *gorm.DB, skipCanonicalizeIndices bool) error {
 
 	if !skipCanonicalizeIndices {
 		if err := CanonicalizeColumnIndices(db, c.TableID); err != nil {
-			return err
+			return xerrors.Errorf("Failed to canonicalize column indices: %w", err)
 		}
+		col, err := c.Get(db)
+		if err != nil {
+			return xerrors.Errorf("Failed to get column: %w", err)
+		}
+		*c = *col
 	}
 
 	return nil
@@ -123,7 +184,7 @@ func (c *Column) Delete(db *gorm.DB, skipCanonicalizeIndices bool) error {
 
 	if !skipCanonicalizeIndices {
 		if err := CanonicalizeColumnIndices(db, c.TableID); err != nil {
-			return err
+			return xerrors.Errorf("Failed to canonicalize column indices: %w", err)
 		}
 	}
 

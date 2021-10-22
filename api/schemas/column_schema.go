@@ -1,29 +1,21 @@
 package schemas
 
 import (
+	"encoding/json"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-
-	"github.com/tsujio/x-base/api/models"
 )
 
-func init() {
-	validator.New().RegisterValidation("columntype", func(fl validator.FieldLevel) bool {
-		return models.IsValidColumnType(fl.Field().String())
-	})
-}
-
 type CreateColumnInput struct {
-	Index *int   `json:"index" validate:"omitempty,gte=0"`
-	Name  string `json:"name" validate:"required"`
+	Index *int   `json:"index" validate:"omitempty,gte=0,lte=999"`
+	Name  string `json:"name" validate:"required,lte=100"`
 	Type  string `json:"type" validate:"required,columntype"`
 }
 
 type UpdateColumnInput struct {
-	Index *int    `json:"index" validate:"omitempty,gte=0"`
-	Name  *string `json:"name" validate:"omitempty,gt=0"`
+	Index *int    `json:"index" validate:"omitempty,gte=0,lte=999"`
+	Name  *string `json:"name" validate:"omitempty,gt=0,lte=100"`
 	Type  *string `json:"type" validate:"omitempty,columntype"`
 }
 
@@ -39,4 +31,16 @@ type Column struct {
 	Type      string    `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type ColumnList struct {
+	Columns []Column `json:"columns"`
+}
+
+func (c ColumnList) MarshalJSON() ([]byte, error) {
+	if c.Columns == nil {
+		c.Columns = []Column{}
+	}
+	type Alias ColumnList
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(c)})
 }

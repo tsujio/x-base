@@ -326,7 +326,7 @@ func createColumn(column interface{}, path string, tableID uuid.UUID, index int)
 		// Index
 		c.Index = index
 
-		if err := c.Create(GetDB(), true); err != nil {
+		if err := c.Create(GetDB(), false); err != nil {
 			return err
 		}
 	}

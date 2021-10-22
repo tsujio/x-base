@@ -8,15 +8,26 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/gorilla/schema"
+	"github.com/tsujio/x-base/api/models"
 	"golang.org/x/xerrors"
 )
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
+
+	validate.RegisterValidation("columntype", func(fl validator.FieldLevel) bool {
+		return models.IsValidColumnType(fl.Field().String())
+	})
+}
 
 func DecodeJSON(source io.Reader, dest interface{}) error {
 	err := json.NewDecoder(source).Decode(dest)
 	if err != nil {
 		return xerrors.Errorf("Failed to decode json: %w", err)
 	}
-	err = validator.New().Struct(dest)
+	err = validate.Struct(dest)
 	if err != nil {
 		return xerrors.Errorf("Invalid input: %w", err)
 	}
@@ -29,7 +40,7 @@ func DecodeQuery(source map[string][]string, dest interface{}) error {
 	if err != nil {
 		return xerrors.Errorf("Failed to decode query: %w", err)
 	}
-	err = validator.New().Struct(dest)
+	err = validate.Struct(dest)
 	if err != nil {
 		return xerrors.Errorf("Invalid input: %w", err)
 	}
