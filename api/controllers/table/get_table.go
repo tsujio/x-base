@@ -45,6 +45,11 @@ func (controller *TableController) GetTable(w http.ResponseWriter, r *http.Reque
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get path", err)
 		return
 	}
+	err = table.FetchColumns(controller.DB)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to fetch columns", err)
+		return
+	}
 	err = copier.Copy(&output, &table)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)

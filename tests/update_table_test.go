@@ -227,7 +227,50 @@ func TestUpdateTable(t *testing.T) {
 			Output: map[string]interface{}{
 				"message": "Cannot move to another organization",
 			},
-		}}
+		},
+		{
+			Title: "No update",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				`)
+			},
+			Path:       makePath(testutils.GetUUID("table-01")),
+			Body:       map[string]interface{}{},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":              testutils.GetUUID("table-01"),
+				"organization_id": testutils.GetUUID("org1"),
+				"name":            "table-01",
+				"type":            "table",
+				"path": []interface{}{
+					map[string]interface{}{
+						"id":   testutils.GetUUID("table-01"),
+						"name": "table-01",
+						"type": "table",
+					},
+				},
+				"columns": []interface{}{
+					map[string]interface{}{
+						"id":         testutils.GetUUID("column-01"),
+						"table_id":   testutils.GetUUID("table-01"),
+						"index":      float64(0),
+						"name":       "column-01",
+						"type":       "string",
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+				},
+				"created_at": testutils.Timestamp{},
+				"updated_at": testutils.Timestamp{},
+			},
+		},
+	}
 
 	for _, tc := range testCases {
 		tc.Method = http.MethodPatch

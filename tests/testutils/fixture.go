@@ -236,6 +236,18 @@ func createTable(table interface{}, path string, organizationID, parentFolderID 
 			if err := t.Create(GetDB()); err != nil {
 				return err
 			}
+
+			if cols, exists := tbl["columns"]; exists {
+				if cs, ok := cols.([]interface{}); !ok {
+					return fmt.Errorf("Invalid type: path=%s, type=%T", path+"columns", cols)
+				} else {
+					for i, c := range cs {
+						if err := createColumn(c, fmt.Sprintf("%s.columns[%d]", path, i), uuid.UUID(t.ID), i); err != nil {
+							return err
+						}
+					}
+				}
+			}
 		}
 	}
 	return nil
@@ -258,6 +270,64 @@ func createFolder(folder interface{}, path string, organizationID, parentFolderI
 					return err
 				}
 			}
+		}
+	}
+	return nil
+}
+
+func createColumn(column interface{}, path string, tableID uuid.UUID, index int) error {
+	if col, ok := column.(map[interface{}]interface{}); !ok {
+		return fmt.Errorf("Invalid type: path=%s, type=%T", path, column)
+	} else {
+		c := &models.Column{}
+
+		// ID
+		var idName string
+		if id, exists := col["id"]; exists {
+			if idStr, ok := id.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".id", id)
+			} else {
+				idName = idStr
+				c.ID = models.UUID(GetUUID(idStr))
+			}
+		} else {
+			c.ID = models.UUID(uuid.New())
+		}
+
+		// Name
+		if name, exists := col["name"]; !exists {
+			if idName != "" {
+				c.Name = idName
+			} else {
+				return fmt.Errorf(".name required: path=%s", path)
+			}
+		} else {
+			if nameStr, ok := name.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".name", name)
+			} else {
+				c.Name = nameStr
+			}
+		}
+
+		// Type
+		if typ, exists := col["type"]; !exists {
+			c.Type = "string"
+		} else {
+			if typeStr, ok := typ.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".type", typ)
+			} else {
+				c.Type = typeStr
+			}
+		}
+
+		// TableID
+		c.TableID = models.UUID(tableID)
+
+		// Index
+		c.Index = index
+
+		if err := c.Create(GetDB(), true); err != nil {
+			return err
 		}
 	}
 	return nil

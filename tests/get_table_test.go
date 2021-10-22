@@ -25,8 +25,12 @@ func TestGetTable(t *testing.T) {
 				  - id: org1
 				    tables:
 				      - id: table-01
+				        columns:
+				          - id: column-01
 				      - id: table-02
-				`)
+				        columns:
+				          - id: column-02
+			`)
 			},
 			Path:       makePath(testutils.GetUUID("table-01")),
 			StatusCode: http.StatusOK,
@@ -42,7 +46,17 @@ func TestGetTable(t *testing.T) {
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns": []interface{}{
+					map[string]interface{}{
+						"id":         testutils.GetUUID("column-01"),
+						"table_id":   testutils.GetUUID("table-01"),
+						"index":      float64(0),
+						"name":       "column-01",
+						"type":       "string",
+						"created_at": testutils.Timestamp{},
+						"updated_at": testutils.Timestamp{},
+					},
+				},
 				"created_at": testutils.Timestamp{},
 				"updated_at": testutils.Timestamp{},
 			},
