@@ -7,7 +7,7 @@ import (
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
 
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/strings"
 )
 
 type Folder struct {
@@ -51,7 +51,7 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 	var folderTotalCount int64
 	err := db.Model(&Folder{}).Scopes(conds...).
 		Count(&folderTotalCount).
-		Order(utils.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&folders).
+		Order(strings.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&folders).
 		Error
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to get folders: %w", err)
@@ -82,7 +82,7 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 	var tableTotalCount int64
 	err = db.Model(&Table{}).Scopes(conds...).
 		Count(&tableTotalCount).
-		Order(utils.ToSnakeCase(opts.Sort)).Offset(offset).Limit(limit).Find(&tables).
+		Order(strings.ToSnakeCase(opts.Sort)).Offset(offset).Limit(limit).Find(&tables).
 		Error
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to get tables: %w", err)

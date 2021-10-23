@@ -8,7 +8,7 @@ import (
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
 
-	"github.com/tsujio/x-base/api/utils"
+	"github.com/tsujio/x-base/api/utils/strings"
 )
 
 type Organization struct {
@@ -28,7 +28,7 @@ func GetOrganizationList(db *gorm.DB, opts *GetOrganizationListOpts) ([]Organiza
 	var totalCount int64
 	err := db.Model(&Organization{}).
 		Count(&totalCount).
-		Order(utils.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&organizations).
+		Order(strings.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&organizations).
 		Error
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to get models: %w", err)
