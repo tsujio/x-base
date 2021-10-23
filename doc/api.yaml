@@ -201,6 +201,26 @@ paths:
             'application/json':
               schema:
                 $ref: '#/components/schemas/ColumnList'
+  /tables/{tableId}/query:
+    parameters:
+    - $ref: "#/components/parameters/tableId"
+    post:
+      tags:
+      - Table
+      summary: Manipulate table records
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/QueryTableRecordInput'
+        required: true
+      responses:
+        200:
+          description: Query result
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/QueryTableRecordResult'
   /folders:
     post:
       tags:
@@ -281,19 +301,19 @@ paths:
 components:
   schemas:
     PaginatedList:
+      type: object
       required:
       - has_next
       - total_count
-      type: object
       properties:
         total_count:
           type: integer
         has_next:
           type: boolean
     CreateOrganizationInput:
+      type: object
       required:
       - name
-      type: object
       properties:
         name:
           type: string
@@ -303,12 +323,12 @@ components:
         name:
           type: string
     Organization:
+      type: object
       required:
       - created_at
       - id
       - name
       - updated_at
-      type: object
       properties:
         id:
           type: string
@@ -324,15 +344,16 @@ components:
     OrganizationList:
       allOf:
       - $ref: '#/components/schemas/PaginatedList'
-      - required:
+      - type: object
+        required:
         - organizations
-        type: object
         properties:
           organizations:
             type: array
             items:
               $ref: '#/components/schemas/Organization'
     TableFilesystemEntry:
+      type: object
       required:
       - created_at
       - id
@@ -341,7 +362,6 @@ components:
       - path
       - type
       - updated_at
-      type: object
       properties:
         id:
           type: string
@@ -359,11 +379,11 @@ components:
         path:
           type: array
           items:
+            type: object
             required:
             - id
             - name
             - type
-            type: object
             properties:
               id:
                 type: string
@@ -382,10 +402,10 @@ components:
           type: string
           format: date-time
     CreateTableInput:
+      type: object
       required:
       - name
       - organization_id
-      type: object
       properties:
         organization_id:
           type: string
@@ -412,9 +432,9 @@ components:
     Table:
       allOf:
       - $ref: '#/components/schemas/TableFilesystemEntry'
-      - required:
+      - type: object
+        required:
         - columns
-        type: object
         properties:
           columns:
             type: array
@@ -425,9 +445,9 @@ components:
       enum:
       - string
     CreateColumnInput:
+      type: object
       required:
       - name
-      type: object
       properties:
         index:
           type: integer
@@ -445,9 +465,9 @@ components:
         type:
           $ref: '#/components/schemas/ColumnType'
     ReorderColumnInput:
+      type: object
       required:
       - order
-      type: object
       properties:
         order:
           type: array
@@ -455,6 +475,7 @@ components:
             type: string
             format: uuid
     Column:
+      type: object
       required:
       - created_at
       - id
@@ -463,7 +484,6 @@ components:
       - table_id
       - type
       - updated_at
-      type: object
       properties:
         id:
           type: string
@@ -484,19 +504,313 @@ components:
           type: string
           format: date-time
     ColumnList:
+      type: object
       required:
       - columns
-      type: object
       properties:
         columns:
           type: array
           items:
             $ref: '#/components/schemas/Column'
+    QueryTableRecordInput:
+      oneOf:
+      - $ref: "#/components/schemas/InsertQuery"
+      - $ref: "#/components/schemas/SelectQuery"
+      - $ref: "#/components/schemas/UpdateQuery"
+      - $ref: "#/components/schemas/DeleteQuery"
+    InsertQuery:
+      type: object
+      required:
+      - insert
+      properties:
+        insert:
+          type: object
+          required:
+          - columns
+          properties:
+            columns:
+              type: array
+              items:
+                $ref: "#/components/schemas/ColumnExpr"
+            values:
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ValueExpr"
+    SelectQuery:
+      type: object
+      required:
+      - columns
+      properties:
+        columns:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expr"
+        order_by:
+          type: array
+          items:
+            type: object
+            required:
+            - key
+            properties:
+              key:
+                $ref: "#/components/schemas/Expr"
+              order:
+                type: string
+                enum:
+                - asc
+                - desc
+        offset:
+          type: integer
+        limit:
+          type: integer
+    UpdateQuery:
+      type: object
+      required:
+      - set
+      - where
+      properties:
+        set:
+          type: object
+          required:
+          - to
+          - value
+          properties:
+            to:
+              $ref: "#/components/schemas/ColumnExpr"
+            value:
+              $ref: "#/components/schemas/Expr"
+        where:
+          $ref: "#/components/schemas/Expr"
+    DeleteQuery:
+      type: object
+      required:
+      - where
+      properties:
+        where:
+          $ref: "#/components/schemas/Expr"
+    Expr:
+      oneOf:
+      - $ref: "#/components/schemas/MetadataExpr"
+      - $ref: "#/components/schemas/ColumnExpr"
+      - $ref: "#/components/schemas/ValueExpr"
+      - $ref: "#/components/schemas/FuncExpr"
+      - $ref: "#/components/schemas/RelationalExpr"
+      - $ref: "#/components/schemas/LogicalExpr"
+      - $ref: "#/components/schemas/ArithmeticExpr"
+    MetadataExpr:
+      type: object
+      required:
+      - metadata
+      properties:
+        metadata:
+          type: string
+          enum:
+          - id
+          - created_at
+    ColumnExpr:
+      type: object
+      required:
+      - column
+      properties:
+        column:
+          type: string
+          format: uuid
+    ValueExpr:
+      type: object
+      required:
+      - value
+      properties:
+        value:
+          nullable: true
+          oneOf:
+          - type: string
+          - type: number
+          - type: boolean
+    FuncExpr:
+      type: object
+      required:
+      - func
+      properties:
+        func:
+          type: string
+          enum:
+          - count
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expr"
+    RelationalExpr:
+      oneOf:
+      - type: object
+        required:
+        - eq
+        properties:
+          eq:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - ne
+        properties:
+          ne:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - gt
+        properties:
+          gt:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - ge
+        properties:
+          ge:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - lt
+        properties:
+          lt:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - le
+        properties:
+          le:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - like
+        properties:
+          like:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+    LogicalExpr:
+      oneOf:
+      - type: object
+        required:
+        - and
+        properties:
+          and:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - or
+        properties:
+          or:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - not
+        properties:
+          not:
+            $ref: "#/components/schemas/Expr"
+    ArithmeticExpr:
+      oneOf:
+      - type: object
+        required:
+        - add
+        properties:
+          add:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - sub
+        properties:
+          sub:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - mul
+        properties:
+          mul:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - div
+        properties:
+          div:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - mod
+        properties:
+          mod:
+            type: array
+            items:
+              $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - neg
+        properties:
+          neg:
+            $ref: "#/components/schemas/Expr"
+    QueryTableRecordResult:
+      oneOf:
+      - $ref: "#/components/schemas/InsertQueryResult"
+      - $ref: "#/components/schemas/SelectQueryResult"
+      - $ref: "#/components/schemas/UpdateQueryResult"
+      - $ref: "#/components/schemas/DeleteQueryResult"
+    InsertQueryResult:
+      type: object
+      required:
+      - record_ids
+      properties:
+        record_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    SelectQueryResult:
+      type: object
+      required:
+      - records
+      properties:
+        records:
+          type: array
+          items:
+            type: array
+            items:
+              nullable: true
+              oneOf:
+              - type: string
+              - type: number
+              - type: boolean
+    UpdateQueryResult:
+      type: object
+    DeleteQueryResult:
+      type: object
     CreateFolderInput:
+      type: object
       required:
       - name
       - organization_id
-      type: object
       properties:
         organization_id:
           type: string
@@ -522,9 +836,9 @@ components:
     FolderChildren:
       allOf:
       - $ref: '#/components/schemas/PaginatedList'
-      - required:
+      - type: object
+        required:
         - children
-        type: object
         properties:
           children:
             type: array
