@@ -1,547 +1,577 @@
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  version: "1.0.0"
-  title: "X-Base API"
+  title: X-Base API
+  version: 1.0.0
 tags:
-  - name: Organization
-  - name: Table
-  - name: Folder
+- name: Organization
+- name: Table
+- name: Folder
 paths:
   /organizations:
-    post:
-      tags:
-        - Organization
-      summary: Create organization
-      parameters:
-        - $ref: "#/parameters/createOrganizationInput"
-      responses:
-        "200":
-          description: Created organization
-          schema:
-            $ref: "#/definitions/Organization"
     get:
       tags:
-        - Organization
+      - Organization
       summary: Get organization list
       parameters:
-        - $ref: "#/parameters/page"
-        - $ref: "#/parameters/pageSize"
+      - $ref: "#/components/parameters/page"
+      - $ref: "#/components/parameters/pageSize"
       responses:
-        "200":
+        200:
           description: Organization list
-          schema:
-            $ref: "#/definitions/OrganizationList"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/OrganizationList'
+    post:
+      tags:
+      - Organization
+      summary: Create organization
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationInput'
+        required: true
+      responses:
+        200:
+          description: Created organization
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Organization'
   /organizations/{organizationId}:
     parameters:
-      - $ref: "#/parameters/organizationId"
+    - $ref: "#/components/parameters/organizationId"
     get:
       tags:
-        - Organization
+      - Organization
       summary: Get organization
       responses:
-        "200":
+        200:
           description: Organization
-          schema:
-            $ref: "#/definitions/Organization"
-    patch:
-      tags:
-        - Organization
-      summary: Update organization
-      parameters:
-        - $ref: "#/parameters/updateOrganizationInput"
-      responses:
-        "200":
-          description: Updated organization
-          schema:
-            $ref: "#/definitions/Organization"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Organization'
     delete:
       tags:
-        - Organization
+      - Organization
       summary: Delete organization
       responses:
-        "200":
+        200:
           description: Deleted
+    patch:
+      tags:
+      - Organization
+      summary: Update organization
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationInput'
+        required: true
+      responses:
+        200:
+          description: Updated organization
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Organization'
   /tables:
     post:
       tags:
-        - Table
+      - Table
       summary: Create table
-      parameters:
-        - $ref: "#/parameters/createTableInput"
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/CreateTableInput'
+        required: true
       responses:
-        "200":
+        200:
           description: Created table
-          schema:
-            $ref: "#/definitions/Table"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Table'
   /tables/{tableId}:
     parameters:
-      - $ref: "#/parameters/tableId"
+    - $ref: "#/components/parameters/tableId"
     get:
       tags:
-        - Table
+      - Table
       summary: Get table
       responses:
-        "200":
+        200:
           description: Table
-          schema:
-            $ref: "#/definitions/Table"
-    patch:
-      tags:
-        - Table
-      summary: Update table
-      parameters:
-        - $ref: "#/parameters/updateTableInput"
-      responses:
-        "200":
-          description: Updated table
-          schema:
-            $ref: "#/definitions/Table"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Table'
     delete:
       tags:
-        - Table
+      - Table
       summary: Delete table
       responses:
-        "200":
+        200:
           description: Deleted
-  /tables/{tableId}/columns:
-    parameters:
-      - $ref: "#/parameters/tableId"
-    post:
-      tags:
-        - Table
-      summary: Create column
-      parameters:
-        - $ref: "#/parameters/createColumnInput"
-      responses:
-        "200":
-          description: Created column
-          schema:
-            $ref: "#/definitions/Column"
-  /tables/{tableId}/columns/{columnId}:
-    parameters:
-      - $ref: "#/parameters/tableId"
-      - $ref: "#/parameters/columnId"
     patch:
       tags:
-        - Table
-      summary: Update column
-      parameters:
-        - $ref: "#/parameters/updateColumnInput"
+      - Table
+      summary: Update table
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateTableInput'
+        required: true
       responses:
-        "200":
-          description: Updated column
-          schema:
-            $ref: "#/definitions/Column"
-    delete:
-      tags:
-        - Table
-      summary: Delete column
-      responses:
-        "200":
-          description: Deleted
-  /tables/{tableId}/columns/reorder:
+        200:
+          description: Updated table
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Table'
+  /tables/{tableId}/columns:
     parameters:
-      - $ref: "#/parameters/tableId"
+    - $ref: "#/components/parameters/tableId"
     post:
       tags:
-        - Table
-      summary: Reorder columns
-      parameters:
-        - $ref: "#/parameters/reorderColumnInput"
+      - Table
+      summary: Create column
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/CreateColumnInput'
+        required: true
       responses:
-        "200":
+        200:
+          description: Created column
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Column'
+  /tables/{tableId}/columns/{columnId}:
+    parameters:
+    - $ref: "#/components/parameters/tableId"
+    - $ref: "#/components/parameters/columnId"
+    delete:
+      tags:
+      - Table
+      summary: Delete column
+      responses:
+        200:
+          description: Deleted
+    patch:
+      tags:
+      - Table
+      summary: Update column
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateColumnInput'
+        required: true
+      responses:
+        200:
+          description: Updated column
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Column'
+  /tables/{tableId}/columns/reorder:
+    parameters:
+    - $ref: "#/components/parameters/tableId"
+    post:
+      tags:
+      - Table
+      summary: Reorder columns
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/ReorderColumnInput'
+        required: true
+      responses:
+        200:
           description: Reordered columns
-          schema:
-            $ref: "#/definitions/ColumnList"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/ColumnList'
   /folders:
     post:
       tags:
-        - Folder
+      - Folder
       summary: Create folder
-      parameters:
-        - $ref: "#/parameters/createFolderInput"
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/CreateFolderInput'
+        required: true
       responses:
-        "200":
+        200:
           description: Created folder
-          schema:
-            $ref: "#/definitions/Folder"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Folder'
   /folders/{folderId}:
     parameters:
-      - $ref: "#/parameters/folderId"
+    - $ref: "#/components/parameters/folderId"
     get:
       tags:
-        - Folder
+      - Folder
       summary: Get folder
       responses:
-        "200":
+        200:
           description: Folder
-          schema:
-            $ref: "#/definitions/Folder"
-    patch:
-      tags:
-        - Folder
-      summary: Update folder
-      parameters:
-        - $ref: "#/parameters/updateFolderInput"
-      responses:
-        "200":
-          description: Updated folder
-          schema:
-            $ref: "#/definitions/Folder"
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Folder'
     delete:
       tags:
-        - Folder
+      - Folder
       summary: Delete folder
       responses:
-        "200":
+        200:
           description: Deleted
+    patch:
+      tags:
+      - Folder
+      summary: Update folder
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateFolderInput'
+        required: true
+      responses:
+        200:
+          description: Updated folder
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Folder'
   /folders/{folderId}/children:
     parameters:
-      - $ref: "#/parameters/folderId"
-      - $ref: "#/parameters/organizationIdQuery"
-      - $ref: "#/parameters/page"
-      - $ref: "#/parameters/pageSize"
+    - $ref: "#/components/parameters/folderId"
     get:
       tags:
-        - Folder
+      - Folder
       summary: Get folder's children
-      description: Specify `00000000-0000-0000-0000-000000000000` as `folderId` path parameter and target organization id as `organizationId` query parameter for retrieving entries at the root folder of the organization.
+      description: Specify `00000000-0000-0000-0000-000000000000` as `folderId` path
+        parameter and target organization id as `organizationId` query parameter for
+        retrieving entries at the root folder of the organization.
+      parameters:
+      - $ref: "#/components/parameters/organizationIdQuery"
+      - $ref: "#/components/parameters/page"
+      - $ref: "#/components/parameters/pageSize"
       responses:
-        "200":
+        200:
           description: Folder's children
-          schema:
-            $ref: "#/definitions/FolderChildren"
-parameters:
-  organizationId:
-    in: path
-    name: organizationId
-    required: true
-    type: string
-  organizationIdQuery:
-    in: query
-    name: organizationId
-    required: false
-    type: string
-  tableId:
-    in: path
-    name: tableId
-    required: true
-    type: string
-  columnId:
-    in: path
-    name: columnId
-    required: true
-    type: string
-  folderId:
-    in: path
-    name: folderId
-    required: true
-    type: string
-  page:
-    in: query
-    name: page
-    required: false
-    type: integer
-  pageSize:
-    in: query
-    name: pageSize
-    required: false
-    type: integer
-  createOrganizationInput:
-    in: body
-    name: createOrganizationInput
-    required: true
-    schema:
-      $ref: "#/definitions/CreateOrganizationInput"
-  updateOrganizationInput:
-    in: body
-    name: updateOrganizationInput
-    required: true
-    schema:
-      $ref: "#/definitions/UpdateOrganizationInput"
-  createTableInput:
-    in: body
-    name: createTableInput
-    required: true
-    schema:
-      $ref: "#/definitions/CreateTableInput"
-  updateTableInput:
-    in: body
-    name: updateTableInput
-    required: true
-    schema:
-      $ref: "#/definitions/UpdateTableInput"
-  createColumnInput:
-    in: body
-    name: createColumnInput
-    required: true
-    schema:
-      $ref: "#/definitions/CreateColumnInput"
-  updateColumnInput:
-    in: body
-    name: updateColumnInput
-    required: true
-    schema:
-      $ref: "#/definitions/UpdateColumnInput"
-  reorderColumnInput:
-    in: body
-    name: reorderColumnInput
-    required: true
-    schema:
-      $ref: "#/definitions/ReorderColumnInput"
-  createFolderInput:
-    in: body
-    name: createFolderInput
-    required: true
-    schema:
-      $ref: "#/definitions/CreateFolderInput"
-  updateFolderInput:
-    in: body
-    name: updateFolderInput
-    required: true
-    schema:
-      $ref: "#/definitions/UpdateFolderInput"
-definitions:
-  PaginatedList:
-    type: object
-    required:
-      - total_count
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FolderChildren'
+components:
+  schemas:
+    PaginatedList:
+      required:
       - has_next
-    properties:
-      total_count:
-        type: integer
-      has_next:
-        type: boolean
-  CreateOrganizationInput:
-    type: object
-    required:
+      - total_count
+      type: object
+      properties:
+        total_count:
+          type: integer
+        has_next:
+          type: boolean
+    CreateOrganizationInput:
+      required:
       - name
-    properties:
-      name:
-        type: string
-  UpdateOrganizationInput:
-    type: object
-    properties:
-      name:
-        type: string
-  Organization:
-    type: object
-    required:
+      type: object
+      properties:
+        name:
+          type: string
+    UpdateOrganizationInput:
+      type: object
+      properties:
+        name:
+          type: string
+    Organization:
+      required:
+      - created_at
       - id
       - name
-      - created_at
       - updated_at
-    properties:
-      id:
-        type: string
-        format: uuid
-      name:
-        type: string
-      created_at:
-        type: string
-        format: date-time
-      updated_at:
-        type: string
-        format: date-time
-  OrganizationList:
-    allOf:
-      - $ref: "#/definitions/PaginatedList"
-      - type: object
-        required:
-          - organizations
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    OrganizationList:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedList'
+      - required:
+        - organizations
+        type: object
         properties:
           organizations:
             type: array
             items:
-              $ref: "#/definitions/Organization"
-  TableFilesystemEntry:
-    type: object
-    required:
-      - id
-      - organization_id
-      - type
-      - name
-      - path
+              $ref: '#/components/schemas/Organization'
+    TableFilesystemEntry:
+      required:
       - created_at
-      - updated_at
-    properties:
-      id:
-        type: string
-        format: uuid
-      organization_id:
-        type: string
-        format: uuid
-      type:
-        type: string
-        enum: ["folder", "table"]
-      name:
-        type: string
-      path:
-        type: array
-        items:
-          type: object
-          required:
-            - id
-            - type
-            - name
-          properties:
-            id:
-              type: string
-              format: uuid
-            type:
-              type: string
-              enum: ["folder", "table"]
-            name:
-              type: string
-      created_at:
-        type: string
-        format: date-time
-      updated_at:
-        type: string
-        format: date-time
-  CreateTableInput:
-    type: object
-    required:
-      - organization_id
+      - id
       - name
-    properties:
-      organization_id:
-        type: string
-        format: uuid
-      name:
-        type: string
-      parent_folder_id:
-        type: string
-        format: uuid
-      columns:
-        type: array
-        items:
-          $ref: "#/definitions/CreateColumnInput"
-  UpdateTableInput:
-    type: object
-    properties:
-      name:
-        type: string
-      parent_folder_id:
-        description: Specify `00000000-0000-0000-0000-000000000000` to move to the root folder
-        type: string
-        format: uuid
-  Table:
-    allOf:
-      - $ref: "#/definitions/TableFilesystemEntry"
-      - type: object
-        required:
-          - columns
+      - organization_id
+      - path
+      - type
+      - updated_at
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+          - folder
+          - table
+        name:
+          type: string
+        path:
+          type: array
+          items:
+            required:
+            - id
+            - name
+            - type
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              type:
+                type: string
+                enum:
+                - folder
+                - table
+              name:
+                type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateTableInput:
+      required:
+      - name
+      - organization_id
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_folder_id:
+          type: string
+          format: uuid
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateColumnInput'
+    UpdateTableInput:
+      type: object
+      properties:
+        name:
+          type: string
+        parent_folder_id:
+          type: string
+          description: Specify `00000000-0000-0000-0000-000000000000` to move to the
+            root folder
+          format: uuid
+    Table:
+      allOf:
+      - $ref: '#/components/schemas/TableFilesystemEntry'
+      - required:
+        - columns
+        type: object
         properties:
           columns:
             type: array
             items:
-              $ref: "#/definitions/Column"
-  ColumnType:
-    type: string
-    enum: ["string"]
-  CreateColumnInput:
-    type: object
-    required:
+              $ref: '#/components/schemas/Column'
+    ColumnType:
+      type: string
+      enum:
+      - string
+    CreateColumnInput:
+      required:
       - name
-    properties:
-      index:
-        type: integer
-      name:
-        type: string
-      type:
-        $ref: "#/definitions/ColumnType"
-  UpdateColumnInput:
-    type: object
-    properties:
-      index:
-        type: integer
-      name:
-        type: string
-      type:
-        $ref: "#/definitions/ColumnType"
-  ReorderColumnInput:
-    type: object
-    required:
-      - order
-    properties:
-      order:
-        type: array
-        items:
+      type: object
+      properties:
+        index:
+          type: integer
+        name:
           type: string
-          format: uuid
-  Column:
-    type: object
-    required:
+        type:
+          $ref: '#/components/schemas/ColumnType'
+    UpdateColumnInput:
+      type: object
+      properties:
+        index:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ColumnType'
+    ReorderColumnInput:
+      required:
+      - order
+      type: object
+      properties:
+        order:
+          type: array
+          items:
+            type: string
+            format: uuid
+    Column:
+      required:
+      - created_at
       - id
-      - table_id
       - index
       - name
+      - table_id
       - type
-      - created_at
       - updated_at
-    properties:
-      id:
-        type: string
-        format: uuid
-      table_id:
-        type: string
-        format: uuid
-      index:
-        type: integer
-      name:
-        type: string
-      type:
-        $ref: "#/definitions/ColumnType"
-      created_at:
-        type: string
-        format: date-time
-      updated_at:
-        type: string
-        format: date-time
-  ColumnList:
-    type: object
-    required:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        table_id:
+          type: string
+          format: uuid
+        index:
+          type: integer
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ColumnType'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ColumnList:
+      required:
       - columns
-    properties:
-      columns:
-        type: array
-        items:
-          $ref: "#/definitions/Column"
-  CreateFolderInput:
-    type: object
-    required:
-      - organization_id
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+    CreateFolderInput:
+      required:
       - name
-    properties:
-      organization_id:
-        type: string
-        format: uuid
-      name:
-        type: string
-      parent_folder_id:
-        type: string
-        format: uuid
-  UpdateFolderInput:
-    type: object
-    properties:
-      name:
-        type: string
-      parent_folder_id:
-        description: Specify `00000000-0000-0000-0000-000000000000` to move to the root folder
-        type: string
-        format: uuid
-  Folder:
-    allOf:
-      - $ref: "#/definitions/TableFilesystemEntry"
-  FolderChildren:
-    allOf:
-      - $ref: "#/definitions/PaginatedList"
-      - type: object
-        required:
-          - children
+      - organization_id
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_folder_id:
+          type: string
+          format: uuid
+    UpdateFolderInput:
+      type: object
+      properties:
+        name:
+          type: string
+        parent_folder_id:
+          type: string
+          description: Specify `00000000-0000-0000-0000-000000000000` to move to the
+            root folder
+          format: uuid
+    Folder:
+      allOf:
+      - $ref: '#/components/schemas/TableFilesystemEntry'
+    FolderChildren:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedList'
+      - required:
+        - children
+        type: object
         properties:
           children:
             type: array
             items:
-              $ref: "#/definitions/TableFilesystemEntry"
+              $ref: '#/components/schemas/TableFilesystemEntry'
+  parameters:
+    organizationId:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    organizationIdQuery:
+      name: organizationId
+      in: query
+      schema:
+        type: string
+        format: uuid
+    tableId:
+      name: tableId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    columnId:
+      name: columnId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    folderId:
+      name: folderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+    pageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
