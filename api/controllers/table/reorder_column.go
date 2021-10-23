@@ -39,7 +39,7 @@ func (controller *TableController) ReorderColumn(w http.ResponseWriter, r *http.
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(tableID)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			responses.SendErrorResponse(w, r, http.StatusBadRequest, "Table not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Table not found", nil)
 			return
 		}
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)

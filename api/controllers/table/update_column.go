@@ -40,18 +40,33 @@ func (controller *TableController) UpdateColumn(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// Fetch column
-	column, err := (&models.Column{ID: models.UUID(columnID)}).Get(controller.DB)
+	// Fetch table
+	table, err := (&models.TableFilesystemEntry{ID: models.UUID(tableID)}).GetTable(controller.DB)
 	if err != nil {
 		if xerrors.Is(err, gorm.ErrRecordNotFound) {
-			responses.SendErrorResponse(w, r, http.StatusNotFound, "Not found", nil)
+			responses.SendErrorResponse(w, r, http.StatusNotFound, "Table not found", nil)
 			return
 		}
-		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get column", err)
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
-	if column.TableID != models.UUID(tableID) {
-		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Wrong table id", nil)
+
+	// Fetch columns
+	err = table.FetchColumns(controller.DB)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get columns", err)
+	}
+
+	// Find column
+	var column *models.Column
+	for _, c := range table.Columns {
+		if c.ID == models.UUID(columnID) {
+			column = &c
+			break
+		}
+	}
+	if column == nil {
+		responses.SendErrorResponse(w, r, http.StatusNotFound, "Column not found", nil)
 		return
 	}
 

@@ -16,6 +16,19 @@ func TestReorderColumn(t *testing.T) {
 		return fmt.Sprintf("/tables/%s/columns/reorder", tableID)
 	}
 
+	testColumnOrder := func(tc *testutils.APITestCase, router http.Handler, tableID uuid.UUID, columnIDs []uuid.UUID) {
+		res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", tableID), nil)
+		if len(columnIDs) != len(res["columns"].([]interface{})) {
+			t.Errorf("[%s] # of Columns mismatch:\n%s", tc.Title, res["columns"])
+		}
+		for i, col := range res["columns"].([]interface{}) {
+			c := col.(map[string]interface{})
+			if c["id"] != columnIDs[i].String() || c["index"] != float64(i) {
+				t.Errorf("[%s] Got unexpected columns:\n%s", tc.Title, res["columns"])
+			}
+		}
+	}
+
 	testCases := []testutils.APITestCase{
 		{
 			Title: "General case",
@@ -32,6 +45,7 @@ func TestReorderColumn(t *testing.T) {
 				      - id: table-02
 				        columns:
 				          - id: column-04
+				          - id: column-05
 				`)
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
@@ -73,6 +87,18 @@ func TestReorderColumn(t *testing.T) {
 						"updated_at": testutils.Timestamp{},
 					},
 				},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Check columns
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-03"),
+					testutils.GetUUID("column-02"),
+					testutils.GetUUID("column-01"),
+				})
+				testColumnOrder(tc, router, testutils.GetUUID("table-02"), []uuid.UUID{
+					testutils.GetUUID("column-04"),
+					testutils.GetUUID("column-05"),
+				})
 			},
 		},
 		{
@@ -118,6 +144,13 @@ func TestReorderColumn(t *testing.T) {
 						"updated_at": testutils.Timestamp{},
 					},
 				},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Check columns
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-02"),
+					testutils.GetUUID("column-01"),
+				})
 			},
 		},
 		{
@@ -173,6 +206,14 @@ func TestReorderColumn(t *testing.T) {
 					},
 				},
 			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Check columns
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-03"),
+					testutils.GetUUID("column-01"),
+					testutils.GetUUID("column-02"),
+				})
+			},
 		},
 		{
 			Title: "Contains other table's columns",
@@ -223,15 +264,15 @@ func TestReorderColumn(t *testing.T) {
 				},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				// Check other table's columns
-				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
-				columnIDs := []uuid.UUID{testutils.GetUUID("column-03"), testutils.GetUUID("column-04")}
-				for i, col := range res["columns"].([]interface{}) {
-					c := col.(map[string]interface{})
-					if c["id"] != columnIDs[i].String() || c["index"] != float64(i) {
-						t.Errorf("[%s] Got unexpected columns:\n%s", tc.Title, res["columns"])
-					}
-				}
+				// Check columns
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-02"),
+					testutils.GetUUID("column-01"),
+				})
+				testColumnOrder(tc, router, testutils.GetUUID("table-02"), []uuid.UUID{
+					testutils.GetUUID("column-03"),
+					testutils.GetUUID("column-04"),
+				})
 			},
 		},
 		{
@@ -419,6 +460,43 @@ func TestReorderColumn(t *testing.T) {
 						"updated_at": testutils.Timestamp{},
 					},
 				},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Check columns
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-15"),
+					testutils.GetUUID("column-14"),
+					testutils.GetUUID("column-13"),
+					testutils.GetUUID("column-12"),
+					testutils.GetUUID("column-11"),
+					testutils.GetUUID("column-10"),
+					testutils.GetUUID("column-09"),
+					testutils.GetUUID("column-08"),
+					testutils.GetUUID("column-07"),
+					testutils.GetUUID("column-06"),
+					testutils.GetUUID("column-05"),
+					testutils.GetUUID("column-04"),
+					testutils.GetUUID("column-03"),
+					testutils.GetUUID("column-02"),
+					testutils.GetUUID("column-01"),
+				})
+			},
+		},
+		{
+			Title: "Table not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"order": []interface{}{},
+			},
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Table not found",
 			},
 		},
 	}

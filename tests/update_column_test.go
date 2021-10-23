@@ -16,6 +16,19 @@ func TestUpdateColumn(t *testing.T) {
 		return fmt.Sprintf("/tables/%s/columns/%s", tableID, columnID)
 	}
 
+	testColumnOrder := func(tc *testutils.APITestCase, router http.Handler, tableID uuid.UUID, columnIDs []uuid.UUID) {
+		res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", tableID), nil)
+		if len(columnIDs) != len(res["columns"].([]interface{})) {
+			t.Errorf("[%s] # of Columns mismatch:\n%s", tc.Title, res["columns"])
+		}
+		for i, col := range res["columns"].([]interface{}) {
+			c := col.(map[string]interface{})
+			if c["id"] != columnIDs[i].String() || c["index"] != float64(i) {
+				t.Errorf("[%s] Got unexpected columns:\n%s", tc.Title, res["columns"])
+			}
+		}
+	}
+
 	testCases := []testutils.APITestCase{
 		{
 			Title: "Name",
@@ -52,13 +65,10 @@ func TestUpdateColumn(t *testing.T) {
 				}
 
 				// Check columns
-				columnIDs := []uuid.UUID{testutils.GetUUID("column-01"), testutils.GetUUID("column-02")}
-				for i, col := range res["columns"].([]interface{}) {
-					c := col.(map[string]interface{})
-					if c["id"] != columnIDs[i].String() || c["index"] != float64(i) {
-						t.Errorf("[%s] Got unexpected columns:\n%s", tc.Title, res["columns"])
-					}
-				}
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-01"),
+					testutils.GetUUID("column-02"),
+				})
 			},
 		},
 		{
@@ -97,12 +107,77 @@ func TestUpdateColumn(t *testing.T) {
 				}
 
 				// Check columns
-				columnIDs := []uuid.UUID{testutils.GetUUID("column-01"), testutils.GetUUID("column-03"), testutils.GetUUID("column-02")}
-				for i, col := range res["columns"].([]interface{}) {
-					c := col.(map[string]interface{})
-					if c["id"] != columnIDs[i].String() || c["index"] != float64(i) {
-						t.Errorf("[%s] Got unexpected columns:\n%s", tc.Title, res["columns"])
-					}
+				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
+					testutils.GetUUID("column-01"),
+					testutils.GetUUID("column-03"),
+					testutils.GetUUID("column-02"),
+				})
+			},
+		},
+		{
+			Title: "Table not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-01")),
+			Body: map[string]interface{}{
+				"name": "new-column",
+			},
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Table not found",
+			},
+		},
+		{
+			Title: "Table exists but column not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-01")),
+			Body: map[string]interface{}{
+				"name": "new-column",
+			},
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Column not found",
+			},
+		},
+		{
+			Title: "Specify other table's column",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				      - id: table-02
+				        columns:
+				          - id: column-02
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-02")),
+			Body: map[string]interface{}{
+				"name": "new-column",
+			},
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Column not found",
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Check other columns not affected
+				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
+				if res["columns"].([]interface{})[0].(map[string]interface{})["name"] != "column-02" {
+					t.Errorf("[%s] Modified other table's column:\n%s", tc.Title, res["columns"])
 				}
 			},
 		},
