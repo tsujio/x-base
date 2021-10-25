@@ -229,6 +229,24 @@ func convertToExpr(schema interface{}, table *models.Table) (models.SQLBuilder, 
 		return models.ValueExpr{
 			Value: s.Value,
 		}, nil
+	case schemas.FuncExpr:
+		var expr models.FuncExpr
+		switch s.Func {
+		case "count":
+			expr.Func = models.FuncExprFuncCount
+		default:
+			return nil, fmt.Errorf("Invalid func: %s", s.Func)
+		}
+
+		for _, arg := range s.Args {
+			e, err := convertToExpr(arg, table)
+			if err != nil {
+				return nil, xerrors.Errorf("Failed to convert expr: %w", err)
+			}
+			expr.Args = append(expr.Args, e)
+		}
+
+		return expr, nil
 	default:
 		return nil, fmt.Errorf("Invalid expr type: %T", s)
 	}

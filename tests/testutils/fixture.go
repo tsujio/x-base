@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -241,10 +242,22 @@ func createTable(table interface{}, path string, organizationID, parentFolderID 
 
 			if cols, exists := tbl["columns"]; exists {
 				if cs, ok := cols.([]interface{}); !ok {
-					return fmt.Errorf("Invalid type: path=%s, type=%T", path+"columns", cols)
+					return fmt.Errorf("Invalid type: path=%s, type=%T", path+".columns", cols)
 				} else {
 					for i, c := range cs {
-						if err := createColumn(c, fmt.Sprintf("%s.columns[%d]", path, i), uuid.UUID(t.ID), i); err != nil {
+						if err := createColumn(c, fmt.Sprintf("%s.columns[%d]", path, i), t, i); err != nil {
+							return err
+						}
+					}
+				}
+			}
+
+			if records, exists := tbl["records"]; exists {
+				if rcds, ok := records.([]interface{}); !ok {
+					return fmt.Errorf("Invalid type: path=%s, type=%T", path+".records", records)
+				} else {
+					for i, r := range rcds {
+						if err := createTableRecord(r, fmt.Sprintf("%s.records[%d]", path, i), t); err != nil {
 							return err
 						}
 					}
@@ -277,7 +290,7 @@ func createFolder(folder interface{}, path string, organizationID, parentFolderI
 	return nil
 }
 
-func createColumn(column interface{}, path string, tableID uuid.UUID, index int) error {
+func createColumn(column interface{}, path string, table models.Table, index int) error {
 	if col, ok := column.(map[string]interface{}); !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, column)
 	} else {
@@ -323,12 +336,74 @@ func createColumn(column interface{}, path string, tableID uuid.UUID, index int)
 		}
 
 		// TableID
-		c.TableID = models.UUID(tableID)
+		c.TableID = table.ID
 
 		// Index
 		c.Index = index
 
 		if err := c.Create(GetDB(), false); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func createTableRecord(record interface{}, path string, table models.Table) error {
+	if rcd, ok := record.(map[string]interface{}); !ok {
+		return fmt.Errorf("Invalid type: path=%s, type=%T", path, record)
+	} else {
+		var r models.TableRecord
+
+		// ID
+		if id, exists := rcd["id"]; exists {
+			if idStr, ok := id.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".id", id)
+			} else {
+				r.ID = models.UUID(GetUUID(idStr))
+			}
+		} else {
+			r.ID = models.UUID(uuid.New())
+		}
+
+		// TableID
+		r.TableID = table.ID
+
+		// Data
+		if err := table.FetchColumns(GetDB()); err != nil {
+			return err
+		}
+		if data, exists := rcd["data"]; !exists {
+			return fmt.Errorf(".data required: path=%s", path)
+		} else {
+			if dt, ok := data.([]interface{}); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".data", data)
+			} else {
+				m := map[string]interface{}{}
+				for i, c := range table.Columns {
+					m[c.ID.String()] = dt[i]
+				}
+				j, err := json.Marshal(&m)
+				if err != nil {
+					return err
+				}
+				r.Data = j
+			}
+		}
+
+		// CreatedAt
+		if createdAt, exists := rcd["createdAt"]; exists {
+			if createdAtStr, ok := createdAt.(string); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".createdAt", createdAt)
+			} else {
+				if createdAtTime, err := time.Parse(time.RFC3339, createdAtStr); err != nil {
+					return fmt.Errorf("Invalid time format: path=%s", path+".createdAt")
+				} else {
+					r.CreatedAt = createdAtTime
+				}
+			}
+		}
+
+		if err := GetDB().Create(&r).Error; err != nil {
 			return err
 		}
 	}

@@ -4,12 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
 )
+
+type TableRecord struct {
+	ID        UUID
+	TableID   UUID
+	Data      JSON
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
 
 type SQLBuilder interface {
 	BuildSQL() (string, []interface{}, error)
@@ -185,6 +194,31 @@ type ValueExpr struct {
 
 func (e ValueExpr) BuildSQL() (string, []interface{}, error) {
 	return " ? ", []interface{}{e.Value}, nil
+}
+
+type FuncExprFunc string
+
+const (
+	FuncExprFuncCount FuncExprFunc = "COUNT"
+)
+
+type FuncExpr struct {
+	Func FuncExprFunc
+	Args []SQLBuilder
+}
+
+func (e FuncExpr) BuildSQL() (string, []interface{}, error) {
+	var args []string
+	var params []interface{}
+	for _, arg := range e.Args {
+		s, p, err := arg.BuildSQL()
+		if err != nil {
+			return "", nil, xerrors.Errorf("Failed to build func arg sql: %w", err)
+		}
+		args = append(args, s)
+		params = append(params, p...)
+	}
+	return fmt.Sprintf(" %s(%s) ", e.Func, strings.Join(args, ", ")), params, nil
 }
 
 type TableExpr struct {

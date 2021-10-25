@@ -188,3 +188,218 @@ func TestQueryTableRecordInsert(t *testing.T) {
 		testutils.RunTestCase(t, tc)
 	}
 }
+
+func TestQueryTableRecordSelect(t *testing.T) {
+	makePath := func(id uuid.UUID) string {
+		return fmt.Sprintf("/tables/%s/query", id)
+	}
+
+	testCases := []testutils.APITestCase{
+		{
+			Title: "Select column",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: string
+				          - id: column-02
+				            type: integer
+				          - id: column-03
+				            type: float
+				          - id: column-04
+				            type: boolean
+				          - id: column-05
+				            type: boolean
+				        records:
+				          - data: ["v1", -1, -3.14, true, false]
+				            createdAt: "2021-10-01T00:00:00Z"
+				          - data: [null, null, null, null, null]
+				            createdAt: "2021-10-02T00:00:00Z"
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns:
+			    - column: {{ .column01 }}
+			    - column: {{ .column02 }}
+			    - column: {{ .column03 }}
+			    - column: {{ .column04 }}
+			    - column: {{ .column05 }}
+			  order_by:
+			    - key: {metadata: created_at}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+				"column02": testutils.GetUUID("column-02"),
+				"column03": testutils.GetUUID("column-03"),
+				"column04": testutils.GetUUID("column-04"),
+				"column05": testutils.GetUUID("column-05"),
+			}),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{"v1", float64(-1), float64(-3.14), float64(1), float64(0)},
+					[]interface{}{nil, nil, nil, nil, nil},
+				},
+			},
+		},
+		{
+			Title: "Select metadata",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - id: record-01
+				            data: [1]
+				            createdAt: "2021-10-01T00:00:00Z"
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns: [{metadata: id}, {metadata: created_at}]
+			`, nil),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{testutils.GetUUID("record-01"), "2021-10-01T00:00:00Z"},
+				},
+			},
+		},
+		{
+			Title: "Order by desc",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				          - data: [2]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns: [{column: {{ .column01 }} }]
+			  order_by: [{key: {column: {{ .column01 }} }, order: desc}]
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{float64(2)},
+					[]interface{}{float64(1)},
+				},
+			},
+		},
+		{
+			Title: "Offset and limit",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				          - data: [2]
+				          - data: [3]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns: [{column: {{ .column01 }} }]
+			  order_by: [{key: {column: {{ .column01 }} }}]
+			  offset: 1
+			  limit: 1
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{float64(2)},
+				},
+			},
+		},
+		{
+			Title: "Aggregate functions",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				          - data: [2]
+				          - data: [3]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns:
+			    - func: count
+			      args: [{metadata: id}]
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{float64(3)},
+				},
+			},
+		},
+		{
+			Title: "Not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-02")),
+			Body: makeJSON(`
+			select:
+			  columns:
+			    - value: 1
+			`, nil),
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Table not found",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc.Method = http.MethodPost
+		testutils.RunTestCase(t, tc)
+	}
+}

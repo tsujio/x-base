@@ -59,6 +59,11 @@ type ValueExpr struct {
 	Value interface{}
 }
 
+type FuncExpr struct {
+	Func string
+	Args []interface{}
+}
+
 type SortKey struct {
 	Key   interface{}
 	Order string
@@ -139,7 +144,7 @@ func DecodeSelectQuery(input interface{}, path string) (*SelectQuery, error) {
 		if err != nil {
 			return nil, err
 		}
-		query.Columns = append(query.Columns, reflect.Indirect(reflect.ValueOf(expr)).Interface())
+		query.Columns = append(query.Columns, reflect.ValueOf(expr).Elem().Interface())
 	}
 
 	// order_by
@@ -215,6 +220,9 @@ func DecodeExpr(input interface{}, path string) (interface{}, error) {
 		return e, nil
 	}
 	if e, err := DecodeValueExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeFuncExpr(input, path); err == nil {
 		return e, nil
 	}
 	return nil, fmt.Errorf("Did not match any schema: path=%s", path)
@@ -293,6 +301,52 @@ func DecodeValueExpr(input interface{}, path string) (*ValueExpr, error) {
 	return &expr, nil
 }
 
+func DecodeFuncExpr(input interface{}, path string) (*FuncExpr, error) {
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var expr FuncExpr
+
+	// func
+	fn, exists := in["func"]
+	if !exists {
+		return nil, fmt.Errorf(".func required: path=%s", path)
+	}
+	f, ok := fn.(string)
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=string, got=%T, path=%s.func", fn, path)
+	}
+	var found bool
+	for _, s := range []string{"count"} {
+		if s == f {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Invalid func: path=%s.func", path)
+	}
+	expr.Func = f
+
+	// args
+	if args, exists := in["args"]; exists {
+		ags, ok := args.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.args", args, path)
+		}
+		for i, ag := range ags {
+			e, err := DecodeExpr(ag, fmt.Sprintf("%s.args[%d]", path, i))
+			if err != nil {
+				return nil, err
+			}
+			expr.Args = append(expr.Args, reflect.ValueOf(e).Elem().Interface())
+		}
+	}
+
+	return &expr, nil
+}
+
 func DecodeSortKey(input interface{}, path string) (*SortKey, error) {
 	in, ok := input.(map[string]interface{})
 	if !ok {
@@ -310,7 +364,7 @@ func DecodeSortKey(input interface{}, path string) (*SortKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	expr.Key = reflect.Indirect(reflect.ValueOf(e)).Interface()
+	expr.Key = reflect.ValueOf(e).Elem().Interface()
 
 	// order
 	order, exists := in["order"]
