@@ -221,6 +221,205 @@ func (e FuncExpr) BuildSQL() (string, []interface{}, error) {
 	return fmt.Sprintf(" %s(%s) ", e.Func, strings.Join(args, ", ")), params, nil
 }
 
+type UnaryOpExpr struct {
+	Op SQLBuilder
+}
+
+func (e UnaryOpExpr) BuildSQL() (string, []interface{}, error) {
+	s, p, err := e.Op.BuildSQL()
+	if err != nil {
+		return "", nil, xerrors.Errorf("Failed to build operand sql: %w", err)
+	}
+	return s, p, nil
+}
+
+type BinOpExpr struct {
+	Op1 SQLBuilder
+	Op2 SQLBuilder
+}
+
+func (e BinOpExpr) BuildSQL() ([]string, [][]interface{}, error) {
+	s1, p1, err := e.Op1.BuildSQL()
+	if err != nil {
+		return nil, nil, xerrors.Errorf("Failed to build first operand sql: %w", err)
+	}
+	s2, p2, err := e.Op2.BuildSQL()
+	if err != nil {
+		return nil, nil, xerrors.Errorf("Failed to build second operand sql: %w", err)
+	}
+	return []string{s1, s2}, [][]interface{}{p1, p2}, nil
+}
+
+type EqExpr BinOpExpr
+
+func (e EqExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) = (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type NeExpr BinOpExpr
+
+func (e NeExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) != (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type GtExpr BinOpExpr
+
+func (e GtExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) > (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type GeExpr BinOpExpr
+
+func (e GeExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) >= (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type LtExpr BinOpExpr
+
+func (e LtExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) < (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type LeExpr BinOpExpr
+
+func (e LeExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) <= (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type LikeExpr BinOpExpr
+
+func (e LikeExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) LIKE (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type IsNullExpr UnaryOpExpr
+
+func (e IsNullExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := UnaryOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) IS NULL ", s), p, nil
+	}
+}
+
+type AndExpr BinOpExpr
+
+func (e AndExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) AND (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type OrExpr BinOpExpr
+
+func (e OrExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) OR (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type NotExpr UnaryOpExpr
+
+func (e NotExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := UnaryOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" NOT (%s) ", s), p, nil
+	}
+}
+
+type AddExpr BinOpExpr
+
+func (e AddExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) + (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type SubExpr BinOpExpr
+
+func (e SubExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) - (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type MulExpr BinOpExpr
+
+func (e MulExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) * (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type DivExpr BinOpExpr
+
+func (e DivExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) / (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type ModExpr BinOpExpr
+
+func (e ModExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := BinOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" (%s) %% (%s) ", s[0], s[1]), append(append([]interface{}{}, p[0]...), p[1]...), nil
+	}
+}
+
+type NegExpr UnaryOpExpr
+
+func (e NegExpr) BuildSQL() (string, []interface{}, error) {
+	if s, p, err := UnaryOpExpr(e).BuildSQL(); err != nil {
+		return "", nil, err
+	} else {
+		return fmt.Sprintf(" - (%s) ", s), p, nil
+	}
+}
+
 type TableExpr struct {
 	Table Table
 }

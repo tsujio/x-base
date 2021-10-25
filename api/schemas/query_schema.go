@@ -64,6 +64,33 @@ type FuncExpr struct {
 	Args []interface{}
 }
 
+type UnaryOpExpr struct {
+	Op interface{}
+}
+
+type BinOpExpr struct {
+	Op1 interface{}
+	Op2 interface{}
+}
+
+type EqExpr BinOpExpr
+type NeExpr BinOpExpr
+type GtExpr BinOpExpr
+type GeExpr BinOpExpr
+type LtExpr BinOpExpr
+type LeExpr BinOpExpr
+type LikeExpr BinOpExpr
+type IsNullExpr UnaryOpExpr
+type AndExpr BinOpExpr
+type OrExpr BinOpExpr
+type NotExpr UnaryOpExpr
+type AddExpr BinOpExpr
+type SubExpr BinOpExpr
+type MulExpr BinOpExpr
+type DivExpr BinOpExpr
+type ModExpr BinOpExpr
+type NegExpr UnaryOpExpr
+
 type SortKey struct {
 	Key   interface{}
 	Order string
@@ -225,6 +252,57 @@ func DecodeExpr(input interface{}, path string) (interface{}, error) {
 	if e, err := DecodeFuncExpr(input, path); err == nil {
 		return e, nil
 	}
+	if e, err := DecodeEqExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeNeExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeGtExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeGeExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeLtExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeLeExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeLikeExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeIsNullExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeAndExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeOrExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeNotExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeAddExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeSubExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeMulExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeDivExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeModExpr(input, path); err == nil {
+		return e, nil
+	}
+	if e, err := DecodeNegExpr(input, path); err == nil {
+		return e, nil
+	}
 	return nil, fmt.Errorf("Did not match any schema: path=%s", path)
 }
 
@@ -345,6 +423,198 @@ func DecodeFuncExpr(input interface{}, path string) (*FuncExpr, error) {
 	}
 
 	return &expr, nil
+}
+
+func decodeUnaryOpExpr(operator string, input interface{}, path string) (*UnaryOpExpr, error) {
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var expr UnaryOpExpr
+
+	// operator
+	operand, exists := in[operator]
+	if !exists {
+		return nil, fmt.Errorf(".%s required: path=%s", operator, path)
+	}
+	e, err := DecodeExpr(operand, fmt.Sprintf("%s.%s", path, operator))
+	if err != nil {
+		return nil, err
+	}
+	expr.Op = reflect.ValueOf(e).Elem().Interface()
+
+	return &expr, nil
+}
+
+func decodeBinOpExpr(operator string, input interface{}, path string) (*BinOpExpr, error) {
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var expr BinOpExpr
+
+	// operator
+	operands, exists := in[operator]
+	if !exists {
+		return nil, fmt.Errorf(".%s required: path=%s", operator, path)
+	}
+	ops, ok := operands.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.%s", operands, path, operator)
+	}
+	if len(ops) != 2 {
+		return nil, fmt.Errorf("Invalid operands length: expected=2, got=%d, path=%s.%s", len(ops), path, operator)
+	}
+	var exprs []interface{}
+	for i := 0; i < 2; i++ {
+		e, err := DecodeExpr(ops[i], fmt.Sprintf("%s.%s[%d]", path, operator, i))
+		if err != nil {
+			return nil, err
+		}
+		exprs = append(exprs, reflect.ValueOf(e).Elem().Interface())
+	}
+	expr.Op1 = exprs[0]
+	expr.Op2 = exprs[1]
+
+	return &expr, nil
+}
+
+func DecodeEqExpr(input interface{}, path string) (*EqExpr, error) {
+	if expr, err := decodeBinOpExpr("eq", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*EqExpr)(expr), nil
+	}
+}
+
+func DecodeNeExpr(input interface{}, path string) (*NeExpr, error) {
+	if expr, err := decodeBinOpExpr("ne", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*NeExpr)(expr), nil
+	}
+}
+
+func DecodeGtExpr(input interface{}, path string) (*GtExpr, error) {
+	if expr, err := decodeBinOpExpr("gt", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*GtExpr)(expr), nil
+	}
+}
+
+func DecodeGeExpr(input interface{}, path string) (*GeExpr, error) {
+	if expr, err := decodeBinOpExpr("ge", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*GeExpr)(expr), nil
+	}
+}
+
+func DecodeLtExpr(input interface{}, path string) (*LtExpr, error) {
+	if expr, err := decodeBinOpExpr("lt", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*LtExpr)(expr), nil
+	}
+}
+
+func DecodeLeExpr(input interface{}, path string) (*LeExpr, error) {
+	if expr, err := decodeBinOpExpr("le", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*LeExpr)(expr), nil
+	}
+}
+
+func DecodeLikeExpr(input interface{}, path string) (*LikeExpr, error) {
+	if expr, err := decodeBinOpExpr("like", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*LikeExpr)(expr), nil
+	}
+}
+
+func DecodeIsNullExpr(input interface{}, path string) (*IsNullExpr, error) {
+	if expr, err := decodeUnaryOpExpr("is_null", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*IsNullExpr)(expr), nil
+	}
+}
+
+func DecodeAndExpr(input interface{}, path string) (*AndExpr, error) {
+	if expr, err := decodeBinOpExpr("and", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*AndExpr)(expr), nil
+	}
+}
+
+func DecodeOrExpr(input interface{}, path string) (*OrExpr, error) {
+	if expr, err := decodeBinOpExpr("or", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*OrExpr)(expr), nil
+	}
+}
+
+func DecodeNotExpr(input interface{}, path string) (*NotExpr, error) {
+	if expr, err := decodeUnaryOpExpr("not", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*NotExpr)(expr), nil
+	}
+}
+
+func DecodeAddExpr(input interface{}, path string) (*AddExpr, error) {
+	if expr, err := decodeBinOpExpr("add", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*AddExpr)(expr), nil
+	}
+}
+
+func DecodeSubExpr(input interface{}, path string) (*SubExpr, error) {
+	if expr, err := decodeBinOpExpr("sub", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*SubExpr)(expr), nil
+	}
+}
+
+func DecodeMulExpr(input interface{}, path string) (*MulExpr, error) {
+	if expr, err := decodeBinOpExpr("mul", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*MulExpr)(expr), nil
+	}
+}
+
+func DecodeDivExpr(input interface{}, path string) (*DivExpr, error) {
+	if expr, err := decodeBinOpExpr("div", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*DivExpr)(expr), nil
+	}
+}
+
+func DecodeModExpr(input interface{}, path string) (*ModExpr, error) {
+	if expr, err := decodeBinOpExpr("mod", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*ModExpr)(expr), nil
+	}
+}
+
+func DecodeNegExpr(input interface{}, path string) (*NegExpr, error) {
+	if expr, err := decodeUnaryOpExpr("neg", input, path); err != nil {
+		return nil, err
+	} else {
+		return (*NegExpr)(expr), nil
+	}
 }
 
 func DecodeSortKey(input interface{}, path string) (*SortKey, error) {

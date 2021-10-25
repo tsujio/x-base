@@ -376,6 +376,94 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			},
 		},
 		{
+			Title: "Operators",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [null]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns:
+			    - eq: [{value: 1}, {value: 1}]
+			    - eq: [{value: 1}, {value: 2}]
+			    - ne: [{value: 1}, {value: 1}]
+			    - ne: [{value: 1}, {value: 2}]
+			    - gt: [{value: 1}, {value: 1}]
+			    - gt: [{value: 2}, {value: 1}]
+			    - ge: [{value: 1}, {value: 1}]
+			    - ge: [{value: 1}, {value: 2}]
+			    - ge: [{value: 2}, {value: 1}]
+			    - lt: [{value: 1}, {value: 1}]
+			    - lt: [{value: 1}, {value: 2}]
+			    - le: [{value: 1}, {value: 1}]
+			    - le: [{value: 2}, {value: 1}]
+			    - le: [{value: 1}, {value: 2}]
+			    - like: [{value: abc}, {value: "ab%"}]
+			    - like: [{value: abc}, {value: "ac%"}]
+			    - is_null: {value: null}
+			    - is_null: {value: "null"}
+			    - and: [{value: true}, {value: true}]
+			    - and: [{value: true}, {value: false}]
+			    - or: [{value: false}, {value: false}]
+			    - or: [{value: false}, {value: true}]
+			    - not: {value: true}
+			    - not: {value: false}
+			    - add: [{value: 1}, {value: 2}]
+			    - sub: [{value: 1}, {value: 2}]
+			    - mul: [{value: 2}, {value: 2}]
+			    - div: [{value: 1}, {value: 2}]
+			    - mod: [{value: 3}, {value: 2}]
+			    - neg: {value: 1}
+			`, nil),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{
+						float64(1),
+						float64(0),
+						float64(0),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(0),
+						float64(0),
+						float64(1),
+						float64(0),
+						float64(1),
+						float64(3),
+						float64(-1),
+						float64(4),
+						float64(0.5),
+						float64(1),
+						float64(-1),
+					},
+				},
+			},
+		},
+		{
 			Title: "Not found",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`

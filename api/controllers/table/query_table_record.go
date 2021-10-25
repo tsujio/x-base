@@ -247,6 +247,164 @@ func convertToExpr(schema interface{}, table *models.Table) (models.SQLBuilder, 
 		}
 
 		return expr, nil
+	case schemas.EqExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.EqExpr{Op1: op1, Op2: op2}, nil
+	case schemas.NeExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.NeExpr{Op1: op1, Op2: op2}, nil
+	case schemas.GtExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.GtExpr{Op1: op1, Op2: op2}, nil
+	case schemas.GeExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.GeExpr{Op1: op1, Op2: op2}, nil
+	case schemas.LtExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.LtExpr{Op1: op1, Op2: op2}, nil
+	case schemas.LeExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.LeExpr{Op1: op1, Op2: op2}, nil
+	case schemas.LikeExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.LikeExpr{Op1: op1, Op2: op2}, nil
+	case schemas.IsNullExpr:
+		op, err := convertToExpr(s.Op, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert operand: %w", err)
+		}
+		return models.IsNullExpr{Op: op}, nil
+	case schemas.AndExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.AndExpr{Op1: op1, Op2: op2}, nil
+	case schemas.OrExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.OrExpr{Op1: op1, Op2: op2}, nil
+	case schemas.NotExpr:
+		op, err := convertToExpr(s.Op, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert operand: %w", err)
+		}
+		return models.NotExpr{Op: op}, nil
+	case schemas.AddExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.AddExpr{Op1: op1, Op2: op2}, nil
+	case schemas.SubExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.SubExpr{Op1: op1, Op2: op2}, nil
+	case schemas.MulExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.MulExpr{Op1: op1, Op2: op2}, nil
+	case schemas.DivExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.DivExpr{Op1: op1, Op2: op2}, nil
+	case schemas.ModExpr:
+		op1, err := convertToExpr(s.Op1, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert first operand: %w", err)
+		}
+		op2, err := convertToExpr(s.Op2, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert second operand: %w", err)
+		}
+		return models.ModExpr{Op1: op1, Op2: op2}, nil
+	case schemas.NegExpr:
+		op, err := convertToExpr(s.Op, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to convert operand: %w", err)
+		}
+		return models.NegExpr{Op: op}, nil
 	default:
 		return nil, fmt.Errorf("Invalid expr type: %T", s)
 	}
