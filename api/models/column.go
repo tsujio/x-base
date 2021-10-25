@@ -22,7 +22,7 @@ type Column struct {
 }
 
 func IsValidColumnType(typ string) bool {
-	for _, t := range []string{"string"} {
+	for _, t := range []string{"string", "integer", "float", "boolean"} {
 		if t == typ {
 			return true
 		}

@@ -78,7 +78,15 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				      - id: table-01
 				        columns:
 				          - id: column-01
+				            type: string
 				          - id: column-02
+				            type: integer
+				          - id: column-03
+				            type: float
+				          - id: column-04
+				            type: boolean
+				          - id: column-05
+				            type: integer
 				`)
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
@@ -87,18 +95,36 @@ func TestQueryTableRecordInsert(t *testing.T) {
 			  columns:
 			    - column: {{ .column01 }}
 			    - column: {{ .column02 }}
+			    - column: {{ .column03 }}
+			    - column: {{ .column04 }}
+			    - column: {{ .column05 }}
 			  values:
 			    - - value: v1-1
-			      - value: v1-2
+			      - value: 0
+			      - value: 3.14
+			      - value: true
+			      - value: 1
 			    - - value: v2-1
+			      - value: 1
+			      - value: 2.71
+			      - value: false
+			      - value: 2
+			    - - value: null
 			      - value: null
+			      - value: null
+			      - value: null
+			      - value: 3
 			`, map[string]interface{}{
 				"column01": testutils.GetUUID("column-01"),
 				"column02": testutils.GetUUID("column-02"),
+				"column03": testutils.GetUUID("column-03"),
+				"column04": testutils.GetUUID("column-04"),
+				"column05": testutils.GetUUID("column-05"),
 			}),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"record_ids": []interface{}{
+					testutils.UUID{},
 					testutils.UUID{},
 					testutils.UUID{},
 				},
@@ -107,18 +133,22 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				// Select from the table
 				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
 				select:
-				  columns: [{metadata: id}, {column: {{ .column01 }} }, {column: {{ .column02 }} }]
-				  order_by: [{key: {column: {{ .column01 }} }}]
+				  columns: [{metadata: id}, {column: {{ .column01 }} }, {column: {{ .column02 }} }, {column: {{ .column03 }} }, {column: {{ .column04 }} }]
+				  order_by: [{key: {column: {{ .column05 }} }}]
 				`, map[string]interface{}{
 					"column01": testutils.GetUUID("column-01"),
 					"column02": testutils.GetUUID("column-02"),
+					"column03": testutils.GetUUID("column-03"),
+					"column04": testutils.GetUUID("column-04"),
+					"column05": testutils.GetUUID("column-05"),
 				}))
-				if diff := testutils.CompareJson(res, map[string]interface{}{
+				if diff := testutils.CompareJson(map[string]interface{}{
 					"records": []interface{}{
-						[]interface{}{output["record_ids"].([]interface{})[0], "v1-1", "v1-2"},
-						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", nil},
+						[]interface{}{output["record_ids"].([]interface{})[0], "v1-1", float64(0), float64(3.14), float64(1)},
+						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", float64(1), float64(2.71), float64(0)},
+						[]interface{}{output["record_ids"].([]interface{})[2], nil, nil, nil, nil},
 					},
-				}); diff != "" {
+				}, res); diff != "" {
 					t.Errorf("[%s] Selected records mismatch:\n%s", tc.Title, diff)
 				}
 			},

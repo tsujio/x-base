@@ -45,6 +45,10 @@ func (controller *TableController) QueryTableRecord(w http.ResponseWriter, r *ht
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get table", err)
 		return
 	}
+	if err := table.FetchColumns(controller.DB); err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to fetch columns", err)
+		return
+	}
 
 	// Query
 	var output interface{}
@@ -123,8 +127,18 @@ func convertToInsertQuery(query *schemas.InsertQuery, table *models.Table) (*mod
 
 	// Columns
 	for _, c := range query.Columns {
+		var column *models.Column
+		for _, col := range table.Columns {
+			if col.ID == models.UUID(c.ColumnID) {
+				column = &col
+				break
+			}
+		}
+		if column == nil {
+			return nil, fmt.Errorf("Column not found: id=%s", c.ColumnID)
+		}
 		q.Columns = append(q.Columns, models.ColumnExpr{
-			ColumnID: models.UUID(c.ColumnID),
+			Column: *column,
 		})
 	}
 
@@ -135,6 +149,9 @@ func convertToInsertQuery(query *schemas.InsertQuery, table *models.Table) (*mod
 			record = append(record, models.ValueExpr{
 				Value: v.Value,
 			})
+		}
+		if len(record) != len(q.Columns) {
+			return nil, fmt.Errorf("Record length != # of columns")
 		}
 		q.Values = append(q.Values, record)
 	}
@@ -147,7 +164,7 @@ func convertToSelectQuery(query *schemas.SelectQuery, table *models.Table) (*mod
 
 	// Columns
 	for i, c := range query.Columns {
-		col, err := convertToExpr(c)
+		col, err := convertToExpr(c, table)
 		if err != nil {
 			return nil, xerrors.Errorf("Invalid column: %w", err)
 		}
@@ -159,12 +176,12 @@ func convertToSelectQuery(query *schemas.SelectQuery, table *models.Table) (*mod
 
 	// From
 	q.From = models.TableExpr{
-		TableID: table.ID,
+		Table: *table,
 	}
 
 	// OrderBy
 	for _, o := range query.OrderBy {
-		key, err := convertToExpr(o.Key)
+		key, err := convertToExpr(o.Key, table)
 		if err != nil {
 			return nil, xerrors.Errorf("Invalid sort key: %w", err)
 		}
@@ -193,16 +210,21 @@ func convertToSelectQuery(query *schemas.SelectQuery, table *models.Table) (*mod
 	return &q, nil
 }
 
-func convertToExpr(schema interface{}) (interface{}, error) {
+func convertToExpr(schema interface{}, table *models.Table) (models.SQLBuilder, error) {
 	switch s := schema.(type) {
 	case schemas.MetadataExpr:
 		return models.MetadataExpr{
 			Key: models.MetadataExprKey(s.Metadata),
 		}, nil
 	case schemas.ColumnExpr:
-		return models.ColumnExpr{
-			ColumnID: models.UUID(s.ColumnID),
-		}, nil
+		for _, col := range table.Columns {
+			if col.ID == models.UUID(s.ColumnID) {
+				return models.ColumnExpr{
+					Column: col,
+				}, nil
+			}
+		}
+		return nil, fmt.Errorf("Column not found: id=%s", s.ColumnID)
 	case schemas.ValueExpr:
 		return models.ValueExpr{
 			Value: s.Value,
