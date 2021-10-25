@@ -6,9 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/google/uuid"
+	"golang.org/x/xerrors"
+
 	"github.com/tsujio/x-base/api/models"
-	"gopkg.in/yaml.v2"
 )
 
 var uuids = map[string]uuid.UUID{}
@@ -22,15 +24,15 @@ func GetUUID(name string) uuid.UUID {
 	return id
 }
 
-func dedent(s string) string {
+func Dedent(s string) string {
 	return regexp.MustCompile(`(?m)^\t+`).ReplaceAllString(s, "")
 }
 
 func LoadFixture(yml string) error {
-	var fixture map[interface{}]interface{}
-	err := yaml.Unmarshal([]byte(dedent(yml)), &fixture)
+	var fixture map[string]interface{}
+	err := yaml.Unmarshal([]byte(Dedent(yml)), &fixture)
 	if err != nil {
-		return err
+		return xerrors.Errorf("Failed to parse yaml: %w", err)
 	}
 
 	if organizations, exists := fixture["organizations"]; exists {
@@ -56,7 +58,7 @@ func createOrganizations(organizations interface{}, path string) error {
 }
 
 func createOrganization(organization interface{}, path string) error {
-	if org, ok := organization.(map[interface{}]interface{}); !ok {
+	if org, ok := organization.(map[string]interface{}); !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, organization)
 	} else {
 		o := models.Organization{}
@@ -122,7 +124,7 @@ func createTableFilesystem(entries interface{}, path string, organizationID, par
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, entries)
 	}
 	for i, e := range ents {
-		ent, ok := e.(map[interface{}]interface{})
+		ent, ok := e.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("Invalid type: path=%s[%d], type=%T", path, i, e)
 		}
@@ -168,7 +170,7 @@ func createTableFilesystem(entries interface{}, path string, organizationID, par
 	return nil
 }
 
-func makeTableFilesystemEntry(entry map[interface{}]interface{}, path string, organizationID, parentFolderID uuid.UUID) (*models.TableFilesystemEntry, error) {
+func makeTableFilesystemEntry(entry map[string]interface{}, path string, organizationID, parentFolderID uuid.UUID) (*models.TableFilesystemEntry, error) {
 	e := &models.TableFilesystemEntry{}
 
 	// ID
@@ -226,7 +228,7 @@ func makeTableFilesystemEntry(entry map[interface{}]interface{}, path string, or
 }
 
 func createTable(table interface{}, path string, organizationID, parentFolderID uuid.UUID) error {
-	if tbl, ok := table.(map[interface{}]interface{}); !ok {
+	if tbl, ok := table.(map[string]interface{}); !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, table)
 	} else {
 		if entry, err := makeTableFilesystemEntry(tbl, path, organizationID, parentFolderID); err != nil {
@@ -254,7 +256,7 @@ func createTable(table interface{}, path string, organizationID, parentFolderID 
 }
 
 func createFolder(folder interface{}, path string, organizationID, parentFolderID uuid.UUID) error {
-	if fld, ok := folder.(map[interface{}]interface{}); !ok {
+	if fld, ok := folder.(map[string]interface{}); !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, folder)
 	} else {
 		if entry, err := makeTableFilesystemEntry(fld, path, organizationID, parentFolderID); err != nil {
@@ -276,7 +278,7 @@ func createFolder(folder interface{}, path string, organizationID, parentFolderI
 }
 
 func createColumn(column interface{}, path string, tableID uuid.UUID, index int) error {
-	if col, ok := column.(map[interface{}]interface{}); !ok {
+	if col, ok := column.(map[string]interface{}); !ok {
 		return fmt.Errorf("Invalid type: path=%s, type=%T", path, column)
 	} else {
 		c := &models.Column{}

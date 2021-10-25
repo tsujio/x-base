@@ -65,7 +65,6 @@ type APITestCase struct {
 func RunTestCase(t *testing.T, tc APITestCase) {
 	defer (func() {
 		if err := recover(); err != nil {
-			t.Error(err)
 			fmt.Println(string(debug.Stack()))
 			t.Fatalf("[%s] %v", tc.Title, err)
 		}

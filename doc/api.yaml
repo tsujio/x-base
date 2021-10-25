@@ -527,6 +527,7 @@ components:
           type: object
           required:
           - columns
+          - values
           properties:
             columns:
               type: array
@@ -699,6 +700,12 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Expr"
+      - type: object
+        required:
+        - is_null
+        properties:
+          is_null:
+            $ref: "#/components/schemas/Expr"
     LogicalExpr:
       oneOf:
       - type: object

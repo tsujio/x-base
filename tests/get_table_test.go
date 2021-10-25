@@ -30,7 +30,7 @@ func TestGetTable(t *testing.T) {
 				      - id: table-02
 				        columns:
 				          - id: column-02
-			`)
+				`)
 			},
 			Path:       makePath(testutils.GetUUID("table-01")),
 			StatusCode: http.StatusOK,

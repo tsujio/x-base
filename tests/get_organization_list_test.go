@@ -62,7 +62,7 @@ func TestGetOrganizationList(t *testing.T) {
 				    createdAt: 2021-01-01T00:00:00Z
 				  - id: organization-02
 				    createdAt: 2021-01-02T00:00:00Z
-			`)
+				`)
 			},
 			Query: url.Values{
 				"page":     []string{"2"},

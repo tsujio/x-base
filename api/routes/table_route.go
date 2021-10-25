@@ -22,4 +22,5 @@ func SetTableRoutes(router *mux.Router, db *gorm.DB) {
 	router.HandleFunc("/{tableID}/columns/{columnID}", controller.UpdateColumn).Methods(http.MethodPatch)
 	router.HandleFunc("/{tableID}/columns/{columnID}", controller.DeleteColumn).Methods(http.MethodDelete)
 	router.HandleFunc("/{tableID}/columns/reorder", controller.ReorderColumn).Methods(http.MethodPost)
+	router.HandleFunc("/{tableID}/query", controller.QueryTableRecord).Methods(http.MethodPost)
 }
