@@ -551,17 +551,7 @@ components:
         order_by:
           type: array
           items:
-            type: object
-            required:
-            - key
-            properties:
-              key:
-                $ref: "#/components/schemas/Expr"
-              order:
-                type: string
-                enum:
-                - asc
-                - desc
+            $ref: "#/components/schemas/SortKey"
         offset:
           type: integer
         limit:
@@ -778,6 +768,18 @@ components:
         properties:
           neg:
             $ref: "#/components/schemas/Expr"
+    SortKey:
+      type: object
+      required:
+      - key
+      properties:
+        key:
+          $ref: "#/components/schemas/Expr"
+        order:
+          type: string
+          enum:
+          - asc
+          - desc
     QueryTableRecordResult:
       oneOf:
       - $ref: "#/components/schemas/InsertQueryResult"
