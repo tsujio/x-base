@@ -180,6 +180,15 @@ func convertToSelectQuery(query *schemas.SelectQuery, table *models.Table) (*mod
 		Table: *table,
 	}
 
+	// Where
+	if query.Where != nil {
+		w, err := convertToExpr(query.Where, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Invalid where clause: %w", err)
+		}
+		q.Where = w
+	}
+
 	// OrderBy
 	for _, o := range query.OrderBy {
 		key, err := convertToExpr(o.Key, table)

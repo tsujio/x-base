@@ -548,6 +548,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Expr"
+        where:
+          $ref: "#/components/schemas/Expr"
         order_by:
           type: array
           items:

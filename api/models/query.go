@@ -72,6 +72,7 @@ func (q *InsertQuery) Execute(db *gorm.DB) ([]UUID, error) {
 type SelectQuery struct {
 	Columns []SelectColumn
 	From    interface{}
+	Where   SQLBuilder
 	OrderBy []SortKey
 	Offset  *int
 	Limit   *int
@@ -100,6 +101,15 @@ func (q *SelectQuery) Execute(db *gorm.DB, dest interface{}) error {
 		WHERE table_id = ?
 		`
 		params = append(params, t.Table.ID)
+
+		if q.Where != nil {
+			s, p, err := q.Where.BuildSQL()
+			if err != nil {
+				return xerrors.Errorf("Failed to build where sql: %w", err)
+			}
+			sql += " AND (" + s + ") "
+			params = append(params, p...)
+		}
 
 		if len(q.OrderBy) > 0 {
 			sql += ` ORDER BY`

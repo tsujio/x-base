@@ -280,6 +280,38 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			},
 		},
 		{
+			Title: "Where",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				          - data: [2]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns: [{column: {{ .column01 }} }]
+			  where: {eq: [{column: {{ .column01 }} }, {value: 2}]}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{float64(2)},
+				},
+				"limit": float64(10),
+			},
+		},
+		{
 			Title: "Order by desc",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`

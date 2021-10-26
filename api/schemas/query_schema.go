@@ -36,6 +36,7 @@ type InsertQuery struct {
 
 type SelectQuery struct {
 	Columns []interface{}
+	Where   interface{}
 	OrderBy []SortKey
 	Offset  int
 	Limit   int
@@ -172,6 +173,15 @@ func DecodeSelectQuery(input interface{}, path string) (*SelectQuery, error) {
 			return nil, err
 		}
 		query.Columns = append(query.Columns, reflect.ValueOf(expr).Elem().Interface())
+	}
+
+	// where
+	if where, exists := in["where"]; exists {
+		expr, err := DecodeExpr(where, fmt.Sprintf("%s.where", path))
+		if err != nil {
+			return nil, err
+		}
+		query.Where = reflect.ValueOf(expr).Elem().Interface()
 	}
 
 	// order_by
