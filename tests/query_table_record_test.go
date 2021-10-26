@@ -148,6 +148,7 @@ func TestQueryTableRecordInsert(t *testing.T) {
 						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", float64(1), float64(2.71), float64(0)},
 						[]interface{}{output["record_ids"].([]interface{})[2], nil, nil, nil, nil},
 					},
+					"limit": float64(10),
 				}, res); diff != "" {
 					t.Errorf("[%s] Selected records mismatch:\n%s", tc.Title, diff)
 				}
@@ -245,6 +246,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 					[]interface{}{"v1", float64(-1), float64(-3.14), float64(1), float64(0)},
 					[]interface{}{nil, nil, nil, nil, nil},
 				},
+				"limit": float64(10),
 			},
 		},
 		{
@@ -274,6 +276,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 				"records": []interface{}{
 					[]interface{}{testutils.GetUUID("record-01"), "2021-10-01T00:00:00Z"},
 				},
+				"limit": float64(10),
 			},
 		},
 		{
@@ -306,6 +309,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 					[]interface{}{float64(2)},
 					[]interface{}{float64(1)},
 				},
+				"limit": float64(10),
 			},
 		},
 		{
@@ -340,6 +344,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 				"records": []interface{}{
 					[]interface{}{float64(2)},
 				},
+				"limit": float64(1),
 			},
 		},
 		{
@@ -373,6 +378,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 				"records": []interface{}{
 					[]interface{}{float64(3)},
 				},
+				"limit": float64(10),
 			},
 		},
 		{
@@ -461,6 +467,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 						float64(-1),
 					},
 				},
+				"limit": float64(10),
 			},
 		},
 		{

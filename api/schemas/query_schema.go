@@ -668,6 +668,7 @@ func (q InsertQueryResult) MarshalJSON() ([]byte, error) {
 
 type SelectQueryResult struct {
 	Records [][]interface{} `json:"records"`
+	Limit   int             `json:"limit"`
 }
 
 func (q SelectQueryResult) MarshalJSON() ([]byte, error) {

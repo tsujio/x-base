@@ -103,6 +103,7 @@ func (controller *TableController) QueryTableRecord(w http.ResponseWriter, r *ht
 			records = append(records, record)
 		}
 		schema.Records = records
+		schema.Limit = q.Limit
 		output = schema
 	case *schemas.UpdateQuery:
 	case *schemas.DeleteQuery:
