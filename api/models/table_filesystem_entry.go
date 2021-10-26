@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,35 +41,27 @@ type TableFilesystemPathEntry struct {
 }
 
 func (e *TableFilesystemEntry) ComputePath(db *gorm.DB) error {
-	var tableName string
-	switch e.Type {
-	case "table":
-		tableName = "tables"
-	case "folder":
-		tableName = "folders"
-	default:
-		return fmt.Errorf("Invalid type (%s)", e.Type)
-	}
-
 	var entries []TableFilesystemPathEntry
-	err := db.Raw(fmt.Sprintf(`
+	err := db.Raw(`
 	WITH recursive rec(id, organization_id, type, name, parent_folder_id, depth, all_ids) AS (
 	    SELECT id, organization_id, type, name, parent_folder_id, 0, JSON_ARRAY(id)
-	    FROM %s
+	    FROM table_filesystem_entries
 	    WHERE id = ?
 	    UNION ALL
-	    SELECT f.id, f.organization_id, f.type, f.name, f.parent_folder_id, rec.depth - 1, JSON_ARRAY_APPEND(rec.all_ids, '$', f.id)
+	    SELECT e.id, e.organization_id, e.type, e.name, e.parent_folder_id, rec.depth - 1, JSON_ARRAY_APPEND(rec.all_ids, '$', e.id)
 	    FROM rec
 	    INNER JOIN folders AS f
-	    ON rec.organization_id = f.organization_id AND
-	       rec.parent_folder_id = f.id
+	    ON f.id = rec.parent_folder_id
+	    INNER JOIN table_filesystem_entries AS e
+	    ON e.id = f.id AND
+	       e.organization_id = rec.organization_id
 	    WHERE rec.parent_folder_id IS NOT NULL AND
-	          NOT JSON_CONTAINS(rec.all_ids, CAST(f.id AS JSON), '$')
+	          NOT JSON_CONTAINS(rec.all_ids, CAST(e.id AS JSON), '$')
 	)
 	SELECT id, type, name
 	FROM rec
 	ORDER BY depth ASC
-	`, tableName), e.ID).Scan(&entries).Error
+	`, e.ID).Scan(&entries).Error
 	if err != nil {
 		return xerrors.Errorf("Failed to get path: %w", err)
 	}

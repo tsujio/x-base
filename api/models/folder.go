@@ -20,10 +20,10 @@ type GetFolderChildrenOpts struct {
 	ComputePath   bool
 }
 
-func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interface{}, int64, error) {
+func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]TableFilesystemEntry, int64, error) {
 	var parentPath []TableFilesystemPathEntry
 	if opts.ComputePath && f.ID != UUID(uuid.Nil) {
-		e := &TableFilesystemEntry{ID: f.ID, Type: "folder"}
+		e := &TableFilesystemEntry{ID: f.ID}
 		if err := e.ComputePath(db); err != nil {
 			return nil, 0, xerrors.Errorf("Failed to get path: %w", err)
 		}
@@ -43,73 +43,27 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]interf
 		},
 	}
 
-	var ret []interface{}
+	var children []TableFilesystemEntry
 	var totalCount int64
-
-	// Fetch folders
-	var folders []Folder
-	var folderTotalCount int64
-	err := db.Model(&Folder{}).Scopes(conds...).
-		Count(&folderTotalCount).
-		Order(strings.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&folders).
+	err := db.Model(&TableFilesystemEntry{}).Scopes(conds...).
+		Count(&totalCount).
+		Order(strings.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&children).
 		Error
 	if err != nil {
-		return nil, 0, xerrors.Errorf("Failed to get folders: %w", err)
+		return nil, 0, xerrors.Errorf("Failed to children: %w", err)
 	}
-	for _, f := range folders {
+	for i := range children {
 		if opts.ComputePath {
-			f.Path = append([]TableFilesystemPathEntry{}, parentPath...)
-			f.Path = append(f.Path, TableFilesystemPathEntry{
-				ID:   f.ID,
-				Type: f.Type,
-				Name: f.Name,
+			c := &children[i]
+			c.Path = append(append([]TableFilesystemPathEntry{}, parentPath...), TableFilesystemPathEntry{
+				ID:   c.ID,
+				Type: c.Type,
+				Name: c.Name,
 			})
 		}
-		ret = append(ret, f)
-	}
-	totalCount += folderTotalCount
-
-	// Fetch tables
-	offset := opts.Offset - int(totalCount)
-	if offset < 0 {
-		offset = 0
-	}
-	limit := opts.Limit - len(ret)
-	if limit < 0 {
-		limit = 0
-	}
-	var tables []Table
-	var tableTotalCount int64
-	err = db.Model(&Table{}).Scopes(conds...).
-		Count(&tableTotalCount).
-		Order(strings.ToSnakeCase(opts.Sort)).Offset(offset).Limit(limit).Find(&tables).
-		Error
-	if err != nil {
-		return nil, 0, xerrors.Errorf("Failed to get tables: %w", err)
-	}
-	for _, t := range tables {
-		if opts.ComputePath {
-			t.Path = append([]TableFilesystemPathEntry{}, parentPath...)
-			t.Path = append(t.Path, TableFilesystemPathEntry{
-				ID:   t.ID,
-				Type: t.Type,
-				Name: t.Name,
-			})
-		}
-		ret = append(ret, t)
-	}
-	totalCount += tableTotalCount
-
-	return ret, totalCount, nil
-}
-
-func (f *Folder) BeforeSave(db *gorm.DB) error {
-	if err := f.TableFilesystemEntry.BeforeSave(db); err != nil {
-		return err
 	}
 
-	f.Type = "folder"
-	return nil
+	return children, totalCount, nil
 }
 
 func (f *Folder) Create(db *gorm.DB) error {
@@ -120,8 +74,13 @@ func (f *Folder) Create(db *gorm.DB) error {
 		}
 		f.ID = UUID(id)
 	}
+	f.Type = "folder"
 
-	err := db.Create(f).Error
+	err := db.Create(&f.TableFilesystemEntry).Error
+	if err != nil {
+		return xerrors.Errorf("Failed to create base model: %w", err)
+	}
+	err = db.Select("ID").Omit("CreatedAt", "UpdatedAt").Create(&f).Error
 	if err != nil {
 		return xerrors.Errorf("Failed to create model: %w", err)
 	}
@@ -132,7 +91,8 @@ func (f *Folder) Save(db *gorm.DB) error {
 	if f.ID == UUID(uuid.Nil) {
 		return fmt.Errorf("Empty id")
 	}
-	err := db.Save(f).Error
+	f.Type = "folder"
+	err := db.Save(&f.TableFilesystemEntry).Error
 	if err != nil {
 		return xerrors.Errorf("Failed to save model: %w", err)
 	}
@@ -140,7 +100,11 @@ func (f *Folder) Save(db *gorm.DB) error {
 }
 
 func (f *Folder) Get(db *gorm.DB) (*Folder, error) {
-	err := db.Where("id = ?", f.ID).First(f).Error
+	err := db.Model(&TableFilesystemEntry{}).
+		Where("id = ?", f.ID).
+		Joins("INNER JOIN folders USING (id)").
+		First(&f.TableFilesystemEntry).
+		Error
 	if err != nil {
 		return nil, xerrors.Errorf("Failed to get model: %w", err)
 	}
@@ -148,7 +112,7 @@ func (f *Folder) Get(db *gorm.DB) (*Folder, error) {
 }
 
 func (f *Folder) Delete(db *gorm.DB) error {
-	err := db.Where("id = ?", f.ID).Delete(f).Error
+	err := db.Where("id = ?", f.ID).Delete(&f.TableFilesystemEntry).Error
 	if err != nil {
 		return xerrors.Errorf("Failed to delete model: %w", err)
 	}

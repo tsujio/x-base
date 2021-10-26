@@ -1,0 +1,2 @@
+ALTER TABLE table_filesystem_entries DROP FOREIGN KEY fk_table_filesystem_entries_02;
+ALTER TABLE table_filesystem_entries DROP COLUMN parent_folder_id;

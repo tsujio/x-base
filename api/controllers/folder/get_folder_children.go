@@ -88,23 +88,11 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 
 	// Convert to output schema
 	var output schemas.FolderChildren
-	for _, child := range children {
-		var schema schemas.FolderChild
-		switch c := child.(type) {
-		case models.Table:
-			if err := copier.Copy(&schema, &c); err != nil {
-				responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
-			}
-		case models.Folder:
-			if err := copier.Copy(&schema, &c); err != nil {
-				responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
-			}
-		default:
-			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data (invalid type)", nil)
-			return
-		}
-		output.Children = append(output.Children, schema)
+	var c []schemas.FolderChild
+	if err := copier.Copy(&c, &children); err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 	}
+	output.Children = c
 	output.TotalCount = totalCount
 	output.HasNext = hasNext
 
