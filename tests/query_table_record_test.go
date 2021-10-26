@@ -530,3 +530,105 @@ func TestQueryTableRecordSelect(t *testing.T) {
 		testutils.RunTestCase(t, tc)
 	}
 }
+
+func TestQueryTableRecordUpdate(t *testing.T) {
+	makePath := func(id uuid.UUID) string {
+		return fmt.Sprintf("/tables/%s/query", id)
+	}
+
+	testCases := []testutils.APITestCase{
+		{
+			Title: "General case",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				          - id: column-02
+				            type: float
+				          - id: column-03
+				            type: string
+				        records:
+				          - data: [1, 3.14, "v1"]
+				          - data: [2, 2.71, "v2"]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			update:
+			  set:
+			    - to: {column: {{ .column01 }} }
+			      value: {add: [{column: {{ .column01 }} }, {value: 2}]}
+			    - to: {column: {{ .column02 }} }
+			      value: {value: 1.41}
+			  where: {eq: [{column: {{ .column03 }} }, {value: "v1"}]}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+				"column02": testutils.GetUUID("column-02"),
+				"column03": testutils.GetUUID("column-03"),
+			}),
+			StatusCode: http.StatusOK,
+			Output:     map[string]interface{}{},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Select from the table
+				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
+				select:
+				  columns: [{column: {{ .column01 }} }, {column: {{ .column02 }} }, {column: {{ .column03 }} }]
+				  order_by: [{key: {column: {{ .column01 }} }}]
+				`, map[string]interface{}{
+					"column01": testutils.GetUUID("column-01"),
+					"column02": testutils.GetUUID("column-02"),
+					"column03": testutils.GetUUID("column-03"),
+				}))
+				if diff := testutils.CompareJson(map[string]interface{}{
+					"records": []interface{}{
+						[]interface{}{float64(2), float64(2.71), "v2"},
+						[]interface{}{float64(3), float64(1.41), "v1"},
+					},
+					"limit": float64(10),
+				}, res); diff != "" {
+					t.Errorf("[%s] Selected records mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-02")),
+			Body: makeJSON(`
+			update:
+			  set:
+			    - to: {column: {{ .column01 }} }
+			      value: {value: 2}
+			  where: {value: true}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Table not found",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc.Method = http.MethodPost
+		testutils.RunTestCase(t, tc)
+	}
+}

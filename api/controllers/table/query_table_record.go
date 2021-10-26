@@ -106,6 +106,23 @@ func (controller *TableController) QueryTableRecord(w http.ResponseWriter, r *ht
 		schema.Limit = q.Limit
 		output = schema
 	case *schemas.UpdateQuery:
+		// Convert
+		sq, err := convertToUpdateQuery(q, table)
+		if err != nil {
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to convert query", err)
+			return
+		}
+
+		// Execute
+		err = sq.Execute(controller.DB)
+		if err != nil {
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to execute query", err)
+			return
+		}
+
+		// Convert to output schema
+		var schema schemas.UpdateQueryResult
+		output = schema
 	case *schemas.DeleteQuery:
 	default:
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid query type (application error)", nil)
@@ -216,6 +233,53 @@ func convertToSelectQuery(query *schemas.SelectQuery, table *models.Table) (*mod
 
 	// Limit
 	q.Limit = &query.Limit
+
+	return &q, nil
+}
+
+func convertToUpdateQuery(query *schemas.UpdateQuery, table *models.Table) (*models.UpdateQuery, error) {
+	q := models.UpdateQuery{}
+
+	// Table
+	q.Table = models.TableExpr{
+		Table: *table,
+	}
+
+	// Set
+	for _, s := range query.Set {
+		var column *models.Column
+		for _, col := range table.Columns {
+			if col.ID == models.UUID(s.To.ColumnID) {
+				column = &col
+				break
+			}
+		}
+		if column == nil {
+			return nil, fmt.Errorf("Column not found: id=%s", s.To.ColumnID)
+		}
+		c := models.ColumnExpr{
+			Column: *column,
+		}
+
+		v, err := convertToExpr(s.Value, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Invalid update value: %w", err)
+		}
+
+		q.Set = append(q.Set, models.UpdateSet{
+			To:    c,
+			Value: v,
+		})
+	}
+
+	// Where
+	if query.Where != nil {
+		w, err := convertToExpr(query.Where, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Invalid where clause: %w", err)
+		}
+		q.Where = w
+	}
 
 	return &q, nil
 }

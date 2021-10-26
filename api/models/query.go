@@ -144,6 +144,58 @@ func (q *SelectQuery) Execute(db *gorm.DB, dest interface{}) error {
 	return nil
 }
 
+type UpdateQuery struct {
+	Table interface{}
+	Set   []UpdateSet
+	Where SQLBuilder
+}
+
+func (q *UpdateQuery) Execute(db *gorm.DB) error {
+	sql := "UPDATE "
+	var params []interface{}
+
+	switch t := q.Table.(type) {
+	case TableExpr:
+		sql += " table_records SET data = JSON_SET(data, "
+
+		for i, us := range q.Set {
+			if i > 0 {
+				sql += `,`
+			}
+
+			s, p, err := us.Value.BuildSQL()
+			if err != nil {
+				return xerrors.Errorf("Failed to build value sql: %w", err)
+			}
+
+			sql += fmt.Sprintf(`'$."%s"', %s`, us.To.Column.ID, s)
+			params = append(params, p...)
+		}
+		sql += ")"
+
+		sql += `
+		WHERE table_id = ?
+		`
+		params = append(params, t.Table.ID)
+
+		s, p, err := q.Where.BuildSQL()
+		if err != nil {
+			return xerrors.Errorf("Failed to build where sql: %w", err)
+		}
+		sql += " AND (" + s + ") "
+		params = append(params, p...)
+	default:
+		return fmt.Errorf("Invalid table type: %T", t)
+	}
+
+	// Execute query
+	if err := db.Exec(sql, params...).Error; err != nil {
+		return xerrors.Errorf("Failed to execute query: %w", err)
+	}
+
+	return nil
+}
+
 type MetadataExprKey string
 
 const (
@@ -476,4 +528,9 @@ func (k SortKey) BuildSQL() (string, []interface{}, error) {
 	sql += " " + string(k.Order) + " "
 
 	return sql, params, nil
+}
+
+type UpdateSet struct {
+	To    ColumnExpr
+	Value SQLBuilder
 }

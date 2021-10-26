@@ -43,6 +43,8 @@ type SelectQuery struct {
 }
 
 type UpdateQuery struct {
+	Set   []UpdateSet
+	Where interface{}
 }
 
 type DeleteQuery struct {
@@ -95,6 +97,11 @@ type NegExpr UnaryOpExpr
 type SortKey struct {
 	Key   interface{}
 	Order string
+}
+
+type UpdateSet struct {
+	To    ColumnExpr
+	Value interface{}
 }
 
 func DecodeInsertQuery(input interface{}, path string) (*InsertQuery, error) {
@@ -242,7 +249,42 @@ func DecodeSelectQuery(input interface{}, path string) (*SelectQuery, error) {
 }
 
 func DecodeUpdateQuery(input interface{}, path string) (*UpdateQuery, error) {
-	return nil, nil
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var query UpdateQuery
+
+	// set
+	set, exists := in["set"]
+	if !exists {
+		return nil, fmt.Errorf(".set required: path=%s", path)
+	}
+	ss, ok := set.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.set", set, path)
+	}
+	for i, s := range ss {
+		us, err := DecodeUpdateSet(s, fmt.Sprintf("%s.set[%d]", path, i))
+		if err != nil {
+			return nil, err
+		}
+		query.Set = append(query.Set, *us)
+	}
+
+	// where
+	where, exists := in["where"]
+	if !exists {
+		return nil, fmt.Errorf(".where required: path=%s", path)
+	}
+	expr, err := DecodeExpr(where, fmt.Sprintf("%s.where", path))
+	if err != nil {
+		return nil, err
+	}
+	query.Where = reflect.ValueOf(expr).Elem().Interface()
+
+	return &query, nil
 }
 
 func DecodeDeleteQuery(input interface{}, path string) (*DeleteQuery, error) {
@@ -660,6 +702,39 @@ func DecodeSortKey(input interface{}, path string) (*SortKey, error) {
 	} else {
 		expr.Order = "asc"
 	}
+
+	return &expr, nil
+}
+
+func DecodeUpdateSet(input interface{}, path string) (*UpdateSet, error) {
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var expr UpdateSet
+
+	// to
+	to, exists := in["to"]
+	if !exists {
+		return nil, fmt.Errorf(".to required: path=%s", path)
+	}
+	c, err := DecodeColumnExpr(to, fmt.Sprintf("%s.to", path))
+	if err != nil {
+		return nil, err
+	}
+	expr.To = *c
+
+	// value
+	value, exists := in["value"]
+	if !exists {
+		return nil, fmt.Errorf(".value required: path=%s", path)
+	}
+	v, err := DecodeExpr(value, fmt.Sprintf("%s.value", path))
+	if err != nil {
+		return nil, err
+	}
+	expr.Value = reflect.ValueOf(v).Elem().Interface()
 
 	return &expr, nil
 }
