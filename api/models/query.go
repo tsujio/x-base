@@ -196,6 +196,41 @@ func (q *UpdateQuery) Execute(db *gorm.DB) error {
 	return nil
 }
 
+type DeleteQuery struct {
+	Table interface{}
+	Where SQLBuilder
+}
+
+func (q *DeleteQuery) Execute(db *gorm.DB) error {
+	sql := "DELETE FROM "
+	var params []interface{}
+
+	switch t := q.Table.(type) {
+	case TableExpr:
+		sql += `
+		table_records
+		WHERE table_id = ?
+		`
+		params = append(params, t.Table.ID)
+
+		s, p, err := q.Where.BuildSQL()
+		if err != nil {
+			return xerrors.Errorf("Failed to build where sql: %w", err)
+		}
+		sql += " AND (" + s + ") "
+		params = append(params, p...)
+	default:
+		return fmt.Errorf("Invalid table type: %T", t)
+	}
+
+	// Execute query
+	if err := db.Exec(sql, params...).Error; err != nil {
+		return xerrors.Errorf("Failed to execute query: %w", err)
+	}
+
+	return nil
+}
+
 type MetadataExprKey string
 
 const (

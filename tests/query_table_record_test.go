@@ -632,3 +632,89 @@ func TestQueryTableRecordUpdate(t *testing.T) {
 		testutils.RunTestCase(t, tc)
 	}
 }
+
+func TestQueryTableRecordDelete(t *testing.T) {
+	makePath := func(id uuid.UUID) string {
+		return fmt.Sprintf("/tables/%s/query", id)
+	}
+
+	testCases := []testutils.APITestCase{
+		{
+			Title: "General case",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				          - data: [2]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			delete:
+			  where:
+			    eq:
+			      - {column: {{ .column01 }} }
+			      - {value: 1}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output:     map[string]interface{}{},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Select from the table
+				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
+				select:
+				  columns: [{column: {{ .column01 }} }]
+				  order_by: [{key: {column: {{ .column01 }} }}]
+				`, map[string]interface{}{
+					"column01": testutils.GetUUID("column-01"),
+				}))
+				if diff := testutils.CompareJson(map[string]interface{}{
+					"records": []interface{}{
+						[]interface{}{float64(2)},
+					},
+					"limit": float64(10),
+				}, res); diff != "" {
+					t.Errorf("[%s] Selected records mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Not found",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-02")),
+			Body: makeJSON(`
+			delete:
+			  where: {value: true}
+			`, nil),
+			StatusCode: http.StatusNotFound,
+			Output: map[string]interface{}{
+				"message": "Table not found",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc.Method = http.MethodPost
+		testutils.RunTestCase(t, tc)
+	}
+}

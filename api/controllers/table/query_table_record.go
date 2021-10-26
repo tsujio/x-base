@@ -124,6 +124,23 @@ func (controller *TableController) QueryTableRecord(w http.ResponseWriter, r *ht
 		var schema schemas.UpdateQueryResult
 		output = schema
 	case *schemas.DeleteQuery:
+		// Convert
+		sq, err := convertToDeleteQuery(q, table)
+		if err != nil {
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to convert query", err)
+			return
+		}
+
+		// Execute
+		err = sq.Execute(controller.DB)
+		if err != nil {
+			responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to execute query", err)
+			return
+		}
+
+		// Convert to output schema
+		var schema schemas.DeleteQueryResult
+		output = schema
 	default:
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Invalid query type (application error)", nil)
 		return
@@ -270,6 +287,26 @@ func convertToUpdateQuery(query *schemas.UpdateQuery, table *models.Table) (*mod
 			To:    c,
 			Value: v,
 		})
+	}
+
+	// Where
+	if query.Where != nil {
+		w, err := convertToExpr(query.Where, table)
+		if err != nil {
+			return nil, xerrors.Errorf("Invalid where clause: %w", err)
+		}
+		q.Where = w
+	}
+
+	return &q, nil
+}
+
+func convertToDeleteQuery(query *schemas.DeleteQuery, table *models.Table) (*models.DeleteQuery, error) {
+	q := models.DeleteQuery{}
+
+	// Table
+	q.Table = models.TableExpr{
+		Table: *table,
 	}
 
 	// Where

@@ -48,6 +48,7 @@ type UpdateQuery struct {
 }
 
 type DeleteQuery struct {
+	Where interface{}
 }
 
 type MetadataExpr struct {
@@ -288,7 +289,25 @@ func DecodeUpdateQuery(input interface{}, path string) (*UpdateQuery, error) {
 }
 
 func DecodeDeleteQuery(input interface{}, path string) (*DeleteQuery, error) {
-	return nil, nil
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var query DeleteQuery
+
+	// where
+	where, exists := in["where"]
+	if !exists {
+		return nil, fmt.Errorf(".where required: path=%s", path)
+	}
+	expr, err := DecodeExpr(where, fmt.Sprintf("%s.where", path))
+	if err != nil {
+		return nil, err
+	}
+	query.Where = reflect.ValueOf(expr).Elem().Interface()
+
+	return &query, nil
 }
 
 func DecodeExpr(input interface{}, path string) (interface{}, error) {
