@@ -565,15 +565,9 @@ components:
       - where
       properties:
         set:
-          type: object
-          required:
-          - to
-          - value
-          properties:
-            to:
-              $ref: "#/components/schemas/ColumnExpr"
-            value:
-              $ref: "#/components/schemas/Expr"
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateSet"
         where:
           $ref: "#/components/schemas/Expr"
     DeleteQuery:
@@ -782,6 +776,16 @@ components:
           enum:
           - asc
           - desc
+    UpdateSet:
+      type: object
+      required:
+      - to
+      - value
+      properties:
+        to:
+          $ref: "#/components/schemas/ColumnExpr"
+        value:
+          $ref: "#/components/schemas/Expr"
     QueryTableRecordResult:
       oneOf:
       - $ref: "#/components/schemas/InsertQueryResult"
