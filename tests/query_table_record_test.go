@@ -144,8 +144,8 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				}))
 				if diff := testutils.CompareJson(map[string]interface{}{
 					"records": []interface{}{
-						[]interface{}{output["record_ids"].([]interface{})[0], "v1-1", float64(0), float64(3.14), float64(1)},
-						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", float64(1), float64(2.71), float64(0)},
+						[]interface{}{output["record_ids"].([]interface{})[0], "v1-1", float64(0), float64(3.14), true},
+						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", float64(1), float64(2.71), false},
 						[]interface{}{output["record_ids"].([]interface{})[2], nil, nil, nil, nil},
 					},
 					"limit": float64(10),
@@ -243,7 +243,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"records": []interface{}{
-					[]interface{}{"v1", float64(-1), float64(-3.14), float64(1), float64(0)},
+					[]interface{}{"v1", float64(-1), float64(-3.14), true, false},
 					[]interface{}{nil, nil, nil, nil, nil},
 				},
 				"limit": float64(10),

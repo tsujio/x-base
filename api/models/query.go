@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -137,9 +138,36 @@ func (q *SelectQuery) Execute(db *gorm.DB, dest interface{}) error {
 	}
 
 	// Execute query
-	if err := db.Raw(sql, params...).Scan(dest).Error; err != nil {
+	rows, err := db.Raw(sql, params...).Rows()
+	if err != nil {
 		return xerrors.Errorf("Failed to execute query: %w", err)
 	}
+	defer rows.Close()
+	colTypes, err := rows.ColumnTypes()
+	if err != nil {
+		return xerrors.Errorf("Failed to get column types: %w", err)
+	}
+	var records []map[string]interface{}
+	for rows.Next() {
+		record := map[string]interface{}{}
+		if err := db.ScanRows(rows, &record); err != nil {
+			return xerrors.Errorf("Failed to scan row: %w", err)
+		}
+		for _, t := range colTypes {
+			if t.DatabaseTypeName() == "JSON" {
+				if val, exists := record[t.Name()]; exists {
+					if s, ok := val.(string); ok {
+						var v interface{}
+						if err := json.Unmarshal([]byte(s), &v); err == nil {
+							record[t.Name()] = v
+						}
+					}
+				}
+			}
+		}
+		records = append(records, record)
+	}
+	reflect.ValueOf(dest).Elem().Set(reflect.ValueOf(records))
 
 	return nil
 }
@@ -256,31 +284,12 @@ type ColumnExpr struct {
 }
 
 func (e ColumnExpr) BuildSQL() (string, []interface{}, error) {
-	var typ string
-	switch e.Column.Type {
-	case "string":
-		typ = "CHAR"
-	case "integer", "boolean":
-		typ = "SIGNED"
-	case "float":
-		typ = "DECIMAL(65, 30)"
-	default:
-		typ = "JSON"
-	}
-
 	id := e.Column.ID.String()
 	sql := fmt.Sprintf(`
 	CAST(CASE WHEN JSON_EXTRACT(data, '$."%s"') IS NULL OR JSON_TYPE(JSON_EXTRACT(data, '$."%s"')) = 'NULL' THEN NULL
-	          WHEN JSON_TYPE(JSON_EXTRACT(data, '$."%s"')) = 'STRING' THEN JSON_UNQUOTE(JSON_EXTRACT(data, '$."%s"'))
-	          WHEN JSON_TYPE(JSON_EXTRACT(data, '$."%s"')) = 'BOOLEAN' THEN CASE WHEN JSON_EXTRACT(data, '$."%s"') THEN TRUE ELSE FALSE END
 	          ELSE JSON_EXTRACT(data, '$."%s"')
-	     END AS %s)
-	`, id, id, id, id, id, id, id, typ)
-
-	// Convert DECIMAL to DOUBLE
-	if e.Column.Type == "float" {
-		sql += " + 0E0 "
-	}
+	     END AS JSON)
+	`, id, id, id)
 
 	return sql, nil, nil
 }
