@@ -37,7 +37,7 @@ func TestUpdateFolder(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("folder-02"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "new-folder",
 				"type":            "folder",
 				"path": []interface{}{
@@ -52,8 +52,8 @@ func TestUpdateFolder(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -83,12 +83,12 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("folder-02")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-01"),
+				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("folder-02"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-02",
 				"type":            "folder",
 				"path": []interface{}{
@@ -103,8 +103,8 @@ func TestUpdateFolder(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -135,12 +135,12 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("folder-02")),
 			Body: map[string]interface{}{
-				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
+				"parentFolderId": "00000000-0000-0000-0000-000000000000",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("folder-02"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-02",
 				"type":            "folder",
 				"path": []interface{}{
@@ -150,8 +150,8 @@ func TestUpdateFolder(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -196,7 +196,7 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("folder-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-02"),
+				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -218,7 +218,7 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("folder-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-02"),
+				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -239,7 +239,7 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("folder-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-02"),
+				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{

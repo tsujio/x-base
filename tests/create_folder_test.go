@@ -22,13 +22,13 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-01",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-01",
 				"type":            "folder",
 				"path": []interface{}{
@@ -38,8 +38,8 @@ func TestFolderTable(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
@@ -57,14 +57,14 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id":  testutils.GetUUID("org1"),
+				"organizationId":  testutils.GetUUID("org1"),
 				"name":             "folder-01",
-				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
+				"parentFolderId": "00000000-0000-0000-0000-000000000000",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-01",
 				"type":            "folder",
 				"path": []interface{}{
@@ -74,8 +74,8 @@ func TestFolderTable(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
@@ -98,14 +98,14 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id":  testutils.GetUUID("org1"),
+				"organizationId":  testutils.GetUUID("org1"),
 				"name":             "folder-04",
-				"parent_folder_id": testutils.GetUUID("folder-02"),
+				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-04",
 				"type":            "folder",
 				"path": []interface{}{
@@ -125,8 +125,8 @@ func TestFolderTable(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
@@ -144,7 +144,7 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "",
 			},
 			StatusCode: http.StatusBadRequest,
@@ -161,13 +161,13 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            strings.Repeat("あ", 100),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.UUID{},
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            strings.Repeat("あ", 100),
 				"type":            "folder",
 				"path": []interface{}{
@@ -177,8 +177,8 @@ func TestFolderTable(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 		},
 		{
@@ -190,7 +190,7 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            strings.Repeat("あ", 101),
 			},
 			StatusCode: http.StatusBadRequest,
@@ -207,9 +207,9 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id":  testutils.GetUUID("org1"),
+				"organizationId":  testutils.GetUUID("org1"),
 				"name":             "folder-01",
-				"parent_folder_id": testutils.GetUUID("folder-02"),
+				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -228,9 +228,9 @@ func TestFolderTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organization_id":  testutils.GetUUID("org1"),
+				"organizationId":  testutils.GetUUID("org1"),
 				"name":             "folder-02",
-				"parent_folder_id": testutils.GetUUID("folder-01"),
+				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{

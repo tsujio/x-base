@@ -32,7 +32,7 @@ func TestGetFolder(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("folder-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "folder-01",
 				"type":            "folder",
 				"path": []interface{}{
@@ -42,8 +42,8 @@ func TestGetFolder(t *testing.T) {
 						"type": "folder",
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 		},
 		{

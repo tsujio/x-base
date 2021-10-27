@@ -49,12 +49,12 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
-				"table_id":   testutils.GetUUID("table-01"),
+				"tableId":   testutils.GetUUID("table-01"),
 				"index":      float64(0),
 				"name":       "column-01",
 				"type":       "string",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -89,12 +89,12 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
-				"table_id":   testutils.GetUUID("table-01"),
+				"tableId":   testutils.GetUUID("table-01"),
 				"index":      float64(1),
 				"name":       "column-02",
 				"type":       "string",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -131,12 +131,12 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
-				"table_id":   testutils.GetUUID("table-01"),
+				"tableId":   testutils.GetUUID("table-01"),
 				"index":      float64(0),
 				"name":       "column-02",
 				"type":       "string",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -190,12 +190,12 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
-				"table_id":   testutils.GetUUID("table-01"),
+				"tableId":   testutils.GetUUID("table-01"),
 				"index":      float64(0),
 				"name":       strings.Repeat("あ", 100),
 				"type":       "string",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -292,12 +292,12 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
-				"table_id":   testutils.GetUUID("table-01"),
+				"tableId":   testutils.GetUUID("table-01"),
 				"index":      float64(1),
 				"name":       "column-02",
 				"type":       "string",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response

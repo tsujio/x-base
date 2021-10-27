@@ -263,7 +263,7 @@ type MetadataExprKey string
 
 const (
 	MetadataExprKeyID        MetadataExprKey = "id"
-	MetadataExprKeyCreatedAt MetadataExprKey = "created_at"
+	MetadataExprKeyCreatedAt MetadataExprKey = "createdAt"
 )
 
 type MetadataExpr struct {
@@ -274,8 +274,10 @@ func (e MetadataExpr) BuildSQL() (string, []interface{}, error) {
 	switch e.Key {
 	case MetadataExprKeyID:
 		return " id_string ", nil, nil
+	case MetadataExprKeyCreatedAt:
+		return " created_at ", nil, nil
 	default:
-		return " " + string(e.Key) + " ", nil, nil
+		return "", nil, fmt.Errorf("Invalid metadata key: %s", e.Key)
 	}
 }
 

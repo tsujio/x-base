@@ -303,12 +303,12 @@ components:
     PaginatedList:
       type: object
       required:
-      - has_next
-      - total_count
+      - hasNext
+      - totalCount
       properties:
-        total_count:
+        totalCount:
           type: integer
-        has_next:
+        hasNext:
           type: boolean
     CreateOrganizationInput:
       type: object
@@ -325,20 +325,20 @@ components:
     Organization:
       type: object
       required:
-      - created_at
+      - createdAt
       - id
       - name
-      - updated_at
+      - updatedAt
       properties:
         id:
           type: string
           format: uuid
         name:
           type: string
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
     OrganizationList:
@@ -355,18 +355,18 @@ components:
     TableFilesystemEntry:
       type: object
       required:
-      - created_at
+      - createdAt
       - id
       - name
-      - organization_id
+      - organizationId
       - path
       - type
-      - updated_at
+      - updatedAt
       properties:
         id:
           type: string
           format: uuid
-        organization_id:
+        organizationId:
           type: string
           format: uuid
         type:
@@ -395,24 +395,24 @@ components:
                 - table
               name:
                 type: string
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
     CreateTableInput:
       type: object
       required:
       - name
-      - organization_id
+      - organizationId
       properties:
-        organization_id:
+        organizationId:
           type: string
           format: uuid
         name:
           type: string
-        parent_folder_id:
+        parentFolderId:
           type: string
           format: uuid
         columns:
@@ -424,7 +424,7 @@ components:
       properties:
         name:
           type: string
-        parent_folder_id:
+        parentFolderId:
           type: string
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the
             root folder
@@ -477,18 +477,18 @@ components:
     Column:
       type: object
       required:
-      - created_at
+      - createdAt
       - id
       - index
       - name
-      - table_id
+      - tableId
       - type
-      - updated_at
+      - updatedAt
       properties:
         id:
           type: string
           format: uuid
-        table_id:
+        tableId:
           type: string
           format: uuid
         index:
@@ -497,10 +497,10 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/ColumnType'
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
     ColumnList:
@@ -550,7 +550,7 @@ components:
             $ref: "#/components/schemas/Expr"
         where:
           $ref: "#/components/schemas/Expr"
-        order_by:
+        orderBy:
           type: array
           items:
             $ref: "#/components/schemas/SortKey"
@@ -595,7 +595,7 @@ components:
           type: string
           enum:
           - id
-          - created_at
+          - createdAt
     ColumnExpr:
       type: object
       required:
@@ -688,9 +688,9 @@ components:
               $ref: "#/components/schemas/Expr"
       - type: object
         required:
-        - is_null
+        - isNull
         properties:
-          is_null:
+          isNull:
             $ref: "#/components/schemas/Expr"
     LogicalExpr:
       oneOf:
@@ -795,9 +795,9 @@ components:
     InsertQueryResult:
       type: object
       required:
-      - record_ids
+      - recordIds
       properties:
-        record_ids:
+        recordIds:
           type: array
           items:
             type: string
@@ -825,14 +825,14 @@ components:
       type: object
       required:
       - name
-      - organization_id
+      - organizationId
       properties:
-        organization_id:
+        organizationId:
           type: string
           format: uuid
         name:
           type: string
-        parent_folder_id:
+        parentFolderId:
           type: string
           format: uuid
     UpdateFolderInput:
@@ -840,7 +840,7 @@ components:
       properties:
         name:
           type: string
-        parent_folder_id:
+        parentFolderId:
           type: string
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the
             root folder

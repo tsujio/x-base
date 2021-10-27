@@ -41,7 +41,7 @@ func TestGetFolderChildren(t *testing.T) {
 				"children": []interface{}{
 					map[string]interface{}{
 						"id":              testutils.GetUUID("folder-03"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "folder-03",
 						"type":            "folder",
 						"path": []interface{}{
@@ -56,12 +56,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "folder",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
 						"id":              testutils.GetUUID("folder-04"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "folder-04",
 						"type":            "folder",
 						"path": []interface{}{
@@ -76,12 +76,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "folder",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
 						"id":              testutils.GetUUID("table-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "table-01",
 						"type":            "table",
 						"path": []interface{}{
@@ -96,12 +96,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "table",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(3),
-				"has_next":    false,
+				"totalCount": float64(3),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -129,7 +129,7 @@ func TestGetFolderChildren(t *testing.T) {
 				"children": []interface{}{
 					map[string]interface{}{
 						"id":              testutils.GetUUID("folder-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "folder-01",
 						"type":            "folder",
 						"path": []interface{}{
@@ -139,12 +139,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "folder",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
 						"id":              testutils.GetUUID("table-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "table-01",
 						"type":            "table",
 						"path": []interface{}{
@@ -154,12 +154,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "table",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(2),
-				"has_next":    false,
+				"totalCount": float64(2),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -198,7 +198,7 @@ func TestGetFolderChildren(t *testing.T) {
 				"children": []interface{}{
 					map[string]interface{}{
 						"id":              testutils.GetUUID("folder-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "folder-01",
 						"type":            "folder",
 						"path": []interface{}{
@@ -208,12 +208,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "folder",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(2),
-				"has_next":    true,
+				"totalCount": float64(2),
+				"hasNext":    true,
 			},
 		},
 		{
@@ -238,7 +238,7 @@ func TestGetFolderChildren(t *testing.T) {
 				"children": []interface{}{
 					map[string]interface{}{
 						"id":              testutils.GetUUID("table-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "table-01",
 						"type":            "table",
 						"path": []interface{}{
@@ -248,12 +248,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "table",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(2),
-				"has_next":    false,
+				"totalCount": float64(2),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -270,8 +270,8 @@ func TestGetFolderChildren(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"children":    []interface{}{},
-				"total_count": float64(0),
-				"has_next":    false,
+				"totalCount": float64(0),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -289,8 +289,8 @@ func TestGetFolderChildren(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"children":    []interface{}{},
-				"total_count": float64(0),
-				"has_next":    false,
+				"totalCount": float64(0),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -327,7 +327,7 @@ func TestGetFolderChildren(t *testing.T) {
 				"children": []interface{}{
 					map[string]interface{}{
 						"id":              testutils.GetUUID("table-01"),
-						"organization_id": testutils.GetUUID("org1"),
+						"organizationId": testutils.GetUUID("org1"),
 						"name":            "table-01",
 						"type":            "table",
 						"path": []interface{}{
@@ -337,12 +337,12 @@ func TestGetFolderChildren(t *testing.T) {
 								"type": "table",
 							},
 						},
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(1),
-				"has_next":    false,
+				"totalCount": float64(1),
+				"hasNext":    false,
 			},
 		},
 		{

@@ -6,6 +6,6 @@ type PaginationInput struct {
 }
 
 type PaginatedList struct {
-	TotalCount int64 `json:"total_count"`
-	HasNext    bool  `json:"has_next"`
+	TotalCount int64 `json:"totalCount"`
+	HasNext    bool  `json:"hasNext"`
 }

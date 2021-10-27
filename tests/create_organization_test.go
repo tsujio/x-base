@@ -20,8 +20,8 @@ func TestCreateOrganization(t *testing.T) {
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
 				"name":       "organization-01",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", output["id"]), nil)
@@ -49,8 +49,8 @@ func TestCreateOrganization(t *testing.T) {
 			Output: map[string]interface{}{
 				"id":         testutils.UUID{},
 				"name":       strings.Repeat("あ", 100),
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", output["id"]), nil)

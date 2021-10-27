@@ -192,15 +192,15 @@ func DecodeSelectQuery(input interface{}, path string) (*SelectQuery, error) {
 		query.Where = reflect.ValueOf(expr).Elem().Interface()
 	}
 
-	// order_by
-	orderBy, exists := in["order_by"]
+	// orderBy
+	orderBy, exists := in["orderBy"]
 	if exists {
 		ob, ok := orderBy.([]interface{})
 		if !ok {
-			return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.order_by", orderBy, path)
+			return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.orderBy", orderBy, path)
 		}
 		for i, o := range ob {
-			k, err := DecodeSortKey(o, fmt.Sprintf("%s.order_by[%d]", path, i))
+			k, err := DecodeSortKey(o, fmt.Sprintf("%s.orderBy[%d]", path, i))
 			if err != nil {
 				return nil, err
 			}
@@ -209,7 +209,7 @@ func DecodeSelectQuery(input interface{}, path string) (*SelectQuery, error) {
 	} else {
 		query.OrderBy = []SortKey{
 			{
-				Key:   MetadataExpr{Metadata: "created_at"},
+				Key:   MetadataExpr{Metadata: "createdAt"},
 				Order: "asc",
 			},
 			{
@@ -394,7 +394,7 @@ func DecodeMetadataExpr(input interface{}, path string) (*MetadataExpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid type: expected=string, got=%T, path=%s.metadata", metadata, path)
 	}
-	for _, key := range []string{"id", "created_at"} {
+	for _, key := range []string{"id", "createdAt"} {
 		if key == d {
 			expr.Metadata = d
 		}
@@ -609,7 +609,7 @@ func DecodeLikeExpr(input interface{}, path string) (*LikeExpr, error) {
 }
 
 func DecodeIsNullExpr(input interface{}, path string) (*IsNullExpr, error) {
-	if expr, err := decodeUnaryOpExpr("is_null", input, path); err != nil {
+	if expr, err := decodeUnaryOpExpr("isNull", input, path); err != nil {
 		return nil, err
 	} else {
 		return (*IsNullExpr)(expr), nil
@@ -759,7 +759,7 @@ func DecodeUpdateSet(input interface{}, path string) (*UpdateSet, error) {
 }
 
 type InsertQueryResult struct {
-	RecordIDs []uuid.UUID `json:"record_ids"`
+	RecordIDs []uuid.UUID `json:"recordIds"`
 }
 
 func (q InsertQueryResult) MarshalJSON() ([]byte, error) {

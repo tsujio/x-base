@@ -25,12 +25,12 @@ type ReorderColumnInput struct {
 
 type Column struct {
 	ID        uuid.UUID `json:"id"`
-	TableID   uuid.UUID `json:"table_id"`
+	TableID   uuid.UUID `json:"tableId"`
 	Index     int       `json:"index"`
 	Name      string    `json:"name"`
 	Type      string    `json:"type"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type ColumnList struct {

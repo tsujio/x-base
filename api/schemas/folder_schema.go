@@ -8,14 +8,14 @@ import (
 )
 
 type CreateFolderInput struct {
-	OrganizationID uuid.UUID  `json:"organization_id" validate:"required"`
+	OrganizationID uuid.UUID  `json:"organizationId" validate:"required"`
 	Name           string     `json:"name" validate:"required,lte=100"`
-	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+	ParentFolderID *uuid.UUID `json:"parentFolderId"`
 }
 
 type UpdateFolderInput struct {
 	Name           *string    `json:"name" validate:"omitempty,gt=0,lte=100"`
-	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+	ParentFolderID *uuid.UUID `json:"parentFolderId"`
 }
 
 type GetFolderChildrenInput struct {
@@ -52,12 +52,12 @@ func (c FolderChild) MarshalJSON() ([]byte, error) {
 
 type TableFilesystemEntry struct {
 	ID             uuid.UUID                  `json:"id"`
-	OrganizationID uuid.UUID                  `json:"organization_id"`
+	OrganizationID uuid.UUID                  `json:"organizationId"`
 	Type           string                     `json:"type"`
 	Name           string                     `json:"name"`
 	Path           []TableFilesystemPathEntry `json:"path"`
-	CreatedAt      time.Time                  `json:"created_at"`
-	UpdatedAt      time.Time                  `json:"updated_at"`
+	CreatedAt      time.Time                  `json:"createdAt"`
+	UpdatedAt      time.Time                  `json:"updatedAt"`
 }
 
 type TableFilesystemPathEntry struct {

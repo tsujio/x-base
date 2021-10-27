@@ -123,7 +123,7 @@ func TestQueryTableRecordInsert(t *testing.T) {
 			}),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"record_ids": []interface{}{
+				"recordIds": []interface{}{
 					testutils.UUID{},
 					testutils.UUID{},
 					testutils.UUID{},
@@ -134,7 +134,7 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
 				select:
 				  columns: [{metadata: id}, {column: {{ .column01 }} }, {column: {{ .column02 }} }, {column: {{ .column03 }} }, {column: {{ .column04 }} }]
-				  order_by: [{key: {column: {{ .column05 }} }}]
+				  orderBy: [{key: {column: {{ .column05 }} }}]
 				`, map[string]interface{}{
 					"column01": testutils.GetUUID("column-01"),
 					"column02": testutils.GetUUID("column-02"),
@@ -144,9 +144,9 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				}))
 				if diff := testutils.CompareJson(map[string]interface{}{
 					"records": []interface{}{
-						[]interface{}{output["record_ids"].([]interface{})[0], "v1-1", float64(0), float64(3.14), true},
-						[]interface{}{output["record_ids"].([]interface{})[1], "v2-1", float64(1), float64(2.71), false},
-						[]interface{}{output["record_ids"].([]interface{})[2], nil, nil, nil, nil},
+						[]interface{}{output["recordIds"].([]interface{})[0], "v1-1", float64(0), float64(3.14), true},
+						[]interface{}{output["recordIds"].([]interface{})[1], "v2-1", float64(1), float64(2.71), false},
+						[]interface{}{output["recordIds"].([]interface{})[2], nil, nil, nil, nil},
 					},
 					"limit": float64(10),
 				}, res); diff != "" {
@@ -231,8 +231,8 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			    - column: {{ .column03 }}
 			    - column: {{ .column04 }}
 			    - column: {{ .column05 }}
-			  order_by:
-			    - key: {metadata: created_at}
+			  orderBy:
+			    - key: {metadata: createdAt}
 			`, map[string]interface{}{
 				"column01": testutils.GetUUID("column-01"),
 				"column02": testutils.GetUUID("column-02"),
@@ -269,7 +269,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: makeJSON(`
 			select:
-			  columns: [{metadata: id}, {metadata: created_at}]
+			  columns: [{metadata: id}, {metadata: createdAt}]
 			`, nil),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -331,7 +331,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			Body: makeJSON(`
 			select:
 			  columns: [{column: {{ .column01 }} }]
-			  order_by: [{key: {column: {{ .column01 }} }, order: desc}]
+			  orderBy: [{key: {column: {{ .column01 }} }, order: desc}]
 			`, map[string]interface{}{
 				"column01": testutils.GetUUID("column-01"),
 			}),
@@ -365,7 +365,7 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			Body: makeJSON(`
 			select:
 			  columns: [{column: {{ .column01 }} }]
-			  order_by: [{key: {column: {{ .column01 }} }}]
+			  orderBy: [{key: {column: {{ .column01 }} }}]
 			  offset: 1
 			  limit: 1
 			`, map[string]interface{}{
@@ -448,8 +448,8 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			    - le: [{value: 1}, {value: 2}]
 			    - like: [{value: abc}, {value: "ab%"}]
 			    - like: [{value: abc}, {value: "ac%"}]
-			    - is_null: {value: null}
-			    - is_null: {value: "null"}
+			    - isNull: {value: null}
+			    - isNull: {value: "null"}
 			    - and: [{value: true}, {value: true}]
 			    - and: [{value: true}, {value: false}]
 			    - or: [{value: false}, {value: false}]
@@ -578,7 +578,7 @@ func TestQueryTableRecordUpdate(t *testing.T) {
 				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
 				select:
 				  columns: [{column: {{ .column01 }} }, {column: {{ .column02 }} }, {column: {{ .column03 }} }]
-				  order_by: [{key: {column: {{ .column01 }} }}]
+				  orderBy: [{key: {column: {{ .column01 }} }}]
 				`, map[string]interface{}{
 					"column01": testutils.GetUUID("column-01"),
 					"column02": testutils.GetUUID("column-02"),
@@ -672,7 +672,7 @@ func TestQueryTableRecordDelete(t *testing.T) {
 				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
 				select:
 				  columns: [{column: {{ .column01 }} }]
-				  order_by: [{key: {column: {{ .column01 }} }}]
+				  orderBy: [{key: {column: {{ .column01 }} }}]
 				`, map[string]interface{}{
 					"column01": testutils.GetUUID("column-01"),
 				}))

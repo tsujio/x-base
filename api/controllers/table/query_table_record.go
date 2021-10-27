@@ -324,8 +324,15 @@ func convertToDeleteQuery(query *schemas.DeleteQuery, table *models.Table) (*mod
 func convertToExpr(schema interface{}, table *models.Table) (models.SQLBuilder, error) {
 	switch s := schema.(type) {
 	case schemas.MetadataExpr:
+		var k models.MetadataExprKey
+		switch s.Metadata {
+		case "id":
+			k = models.MetadataExprKeyID
+		case "createdAt":
+			k = models.MetadataExprKeyCreatedAt
+		}
 		return models.MetadataExpr{
-			Key: models.MetadataExprKey(s.Metadata),
+			Key: k,
 		}, nil
 	case schemas.ColumnExpr:
 		for _, col := range table.Columns {

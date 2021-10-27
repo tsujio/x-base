@@ -39,18 +39,18 @@ func TestGetOrganizationList(t *testing.T) {
 					map[string]interface{}{
 						"id":         testutils.GetUUID("organization-03"),
 						"name":       "organization-03",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
 						"id":         testutils.GetUUID("organization-04"),
 						"name":       "organization-04",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(5),
-				"has_next":    true,
+				"totalCount": float64(5),
+				"hasNext":    true,
 			},
 		},
 		{
@@ -74,12 +74,12 @@ func TestGetOrganizationList(t *testing.T) {
 					map[string]interface{}{
 						"id":         testutils.GetUUID("organization-02"),
 						"name":       "organization-02",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(2),
-				"has_next":    false,
+				"totalCount": float64(2),
+				"hasNext":    false,
 			},
 		},
 		{
@@ -97,8 +97,8 @@ func TestGetOrganizationList(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
-				"total_count":   float64(2),
-				"has_next":      false,
+				"totalCount":   float64(2),
+				"hasNext":      false,
 			},
 		},
 		{
@@ -115,8 +115,8 @@ func TestGetOrganizationList(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
-				"total_count":   float64(1),
-				"has_next":      true,
+				"totalCount":   float64(1),
+				"hasNext":      true,
 			},
 		},
 		{
@@ -170,12 +170,12 @@ func TestGetOrganizationList(t *testing.T) {
 					map[string]interface{}{
 						"id":         testutils.GetUUID("organization-01"),
 						"name":       "organization-01",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"total_count": float64(1),
-				"has_next":    false,
+				"totalCount": float64(1),
+				"hasNext":    false,
 			},
 		},
 		{

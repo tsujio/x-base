@@ -37,7 +37,7 @@ func TestUpdateTable(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("table-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "new-table",
 				"type":            "table",
 				"path": []interface{}{
@@ -53,8 +53,8 @@ func TestUpdateTable(t *testing.T) {
 					},
 				},
 				"columns":    []interface{}{},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -84,12 +84,12 @@ func TestUpdateTable(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-01"),
+				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("table-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
@@ -105,8 +105,8 @@ func TestUpdateTable(t *testing.T) {
 					},
 				},
 				"columns":    []interface{}{},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -137,12 +137,12 @@ func TestUpdateTable(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": "00000000-0000-0000-0000-000000000000",
+				"parentFolderId": "00000000-0000-0000-0000-000000000000",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("table-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
@@ -153,8 +153,8 @@ func TestUpdateTable(t *testing.T) {
 					},
 				},
 				"columns":    []interface{}{},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -199,7 +199,7 @@ func TestUpdateTable(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-01"),
+				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -221,7 +221,7 @@ func TestUpdateTable(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"parent_folder_id": testutils.GetUUID("folder-01"),
+				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
@@ -245,7 +245,7 @@ func TestUpdateTable(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("table-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
@@ -258,16 +258,16 @@ func TestUpdateTable(t *testing.T) {
 				"columns": []interface{}{
 					map[string]interface{}{
 						"id":         testutils.GetUUID("column-01"),
-						"table_id":   testutils.GetUUID("table-01"),
+						"tableId":   testutils.GetUUID("table-01"),
 						"index":      float64(0),
 						"name":       "column-01",
 						"type":       "string",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 		},
 	}

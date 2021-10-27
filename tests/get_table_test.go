@@ -36,7 +36,7 @@ func TestGetTable(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"id":              testutils.GetUUID("table-01"),
-				"organization_id": testutils.GetUUID("org1"),
+				"organizationId": testutils.GetUUID("org1"),
 				"name":            "table-01",
 				"type":            "table",
 				"path": []interface{}{
@@ -49,16 +49,16 @@ func TestGetTable(t *testing.T) {
 				"columns": []interface{}{
 					map[string]interface{}{
 						"id":         testutils.GetUUID("column-01"),
-						"table_id":   testutils.GetUUID("table-01"),
+						"tableId":   testutils.GetUUID("table-01"),
 						"index":      float64(0),
 						"name":       "column-01",
 						"type":       "string",
-						"created_at": testutils.Timestamp{},
-						"updated_at": testutils.Timestamp{},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 		},
 		{

@@ -34,8 +34,8 @@ func TestUpdateOrganization(t *testing.T) {
 			Output: map[string]interface{}{
 				"id":         testutils.GetUUID("organization-01"),
 				"name":       "new-organization",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -84,8 +84,8 @@ func TestUpdateOrganization(t *testing.T) {
 			Output: map[string]interface{}{
 				"id":         testutils.GetUUID("organization-01"),
 				"name":       "organization-01",
-				"created_at": testutils.Timestamp{},
-				"updated_at": testutils.Timestamp{},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
