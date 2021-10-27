@@ -8,13 +8,11 @@ import (
 
 type CreateTableInput struct {
 	OrganizationID uuid.UUID           `json:"organizationId" validate:"required"`
-	Name           string              `json:"name" validate:"required,lte=100"`
 	ParentFolderID *uuid.UUID          `json:"parentFolderId"`
 	Columns        []CreateColumnInput `json:"columns"`
 }
 
 type UpdateTableInput struct {
-	Name           *string    `json:"name" validate:"omitempty,gt=0,lte=100"`
 	ParentFolderID *uuid.UUID `json:"parentFolderId"`
 }
 

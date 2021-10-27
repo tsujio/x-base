@@ -31,47 +31,6 @@ func TestUpdateColumn(t *testing.T) {
 
 	testCases := []testutils.APITestCase{
 		{
-			Title: "Name",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: table-01
-				        columns:
-				          - id: column-01
-				          - id: column-02
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-01")),
-			Body: map[string]interface{}{
-				"name": "new-column",
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":         testutils.GetUUID("column-01"),
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(0),
-				"name":       "new-column",
-				"type":       "string",
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				// Reacquire and compare with the previous response
-				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-01")), nil)
-				if diff := testutils.CompareJson(output, res["columns"].([]interface{})[0]); diff != "" {
-					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
-				}
-
-				// Check columns
-				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
-					testutils.GetUUID("column-01"),
-					testutils.GetUUID("column-02"),
-				})
-			},
-		},
-		{
 			Title: "Move to tail",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -91,11 +50,9 @@ func TestUpdateColumn(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.GetUUID("column-02"),
+				"id":        testutils.GetUUID("column-02"),
 				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(2),
-				"name":       "column-02",
-				"type":       "string",
+				"index":     float64(2),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -124,7 +81,7 @@ func TestUpdateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-01")),
 			Body: map[string]interface{}{
-				"name": "new-column",
+				"index": 1,
 			},
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
@@ -143,7 +100,7 @@ func TestUpdateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-01")),
 			Body: map[string]interface{}{
-				"name": "new-column",
+				"index": 1,
 			},
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
@@ -163,11 +120,12 @@ func TestUpdateColumn(t *testing.T) {
 				      - id: table-02
 				        columns:
 				          - id: column-02
+				          - id: column-03
 				`)
 			},
 			Path: makePath(testutils.GetUUID("table-01"), testutils.GetUUID("column-02")),
 			Body: map[string]interface{}{
-				"name": "new-column",
+				"index": 2,
 			},
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
@@ -176,7 +134,7 @@ func TestUpdateColumn(t *testing.T) {
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Check other columns not affected
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
-				if res["columns"].([]interface{})[0].(map[string]interface{})["name"] != "column-02" {
+				if res["columns"].([]interface{})[0].(map[string]interface{})["id"] != testutils.GetUUID("column-02").String() {
 					t.Errorf("[%s] Modified other table's column:\n%s", tc.Title, res["columns"])
 				}
 			},

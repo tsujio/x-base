@@ -18,59 +18,6 @@ func TestUpdateTable(t *testing.T) {
 
 	testCases := []testutils.APITestCase{
 		{
-			Title: "Name",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: folder-01
-				        children:
-				          - id: table-01
-				          - id: table-02
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "new-table",
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("table-01"),
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            "new-table",
-				"type":            "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
-						"type": "folder",
-					},
-					map[string]interface{}{
-						"id":   testutils.GetUUID("table-01"),
-						"name": "new-table",
-						"type": "table",
-					},
-				},
-				"columns":    []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				// Reacquire and compare with the previous response
-				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
-				if diff := testutils.CompareJson(output, res); diff != "" {
-					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
-				}
-
-				// Did not change other data
-				res = testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
-				if res["name"] != "table-02" {
-					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["name"])
-				}
-			},
-		},
-		{
 			Title: "ParentFolderID",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -88,23 +35,20 @@ func TestUpdateTable(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("table-01"),
+				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
 						"type": "folder",
 					},
 					map[string]interface{}{
 						"id":   testutils.GetUUID("table-01"),
-						"name": "table-01",
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns":   []interface{}{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -141,18 +85,16 @@ func TestUpdateTable(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("table-01"),
+				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("table-01"),
-						"name": "table-01",
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns":   []interface{}{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -180,7 +122,7 @@ func TestUpdateTable(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"name": "new-table",
+				"parentFolderId": "00000000-0000-0000-0000-000000000000",
 			},
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
@@ -244,24 +186,20 @@ func TestUpdateTable(t *testing.T) {
 			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("table-01"),
+				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("table-01"),
-						"name": "table-01",
 						"type": "table",
 					},
 				},
 				"columns": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.GetUUID("column-01"),
+						"id":        testutils.GetUUID("column-01"),
 						"tableId":   testutils.GetUUID("table-01"),
-						"index":      float64(0),
-						"name":       "column-01",
-						"type":       "string",
+						"index":     float64(0),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},

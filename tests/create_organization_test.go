@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/tsujio/x-base/tests/testutils"
@@ -12,14 +11,11 @@ import (
 func TestCreateOrganization(t *testing.T) {
 	testCases := []testutils.APITestCase{
 		{
-			Title: "General case",
-			Body: map[string]interface{}{
-				"name": "organization-01",
-			},
+			Title:      "General case",
+			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
-				"name":       "organization-01",
+				"id":        testutils.UUID{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -28,45 +24,6 @@ func TestCreateOrganization(t *testing.T) {
 				if diff := testutils.CompareJson(output, res); diff != "" {
 					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
 				}
-			},
-		},
-		{
-			Title: "Empty name",
-			Body: map[string]interface{}{
-				"name": "",
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
-			},
-		},
-		{
-			Title: "Name length=100",
-			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 100),
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
-				"name":       strings.Repeat("あ", 100),
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				res := testutils.ServeGet(router, fmt.Sprintf("/organizations/%s", output["id"]), nil)
-				if diff := testutils.CompareJson(output, res); diff != "" {
-					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
-				}
-			},
-		},
-		{
-			Title: "Name length=101",
-			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 101),
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
 			},
 		},
 	}

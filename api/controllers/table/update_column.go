@@ -71,12 +71,6 @@ func (controller *TableController) UpdateColumn(w http.ResponseWriter, r *http.R
 	}
 
 	// Update
-	if input.Name != nil {
-		column.Name = *input.Name
-	}
-	if input.Type != nil {
-		column.Type = *input.Type
-	}
 	if input.Index != nil {
 		column.Index = *input.Index
 	}

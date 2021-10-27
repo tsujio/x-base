@@ -40,6 +40,14 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		return
 	}
 
+	// Decode sort key
+	var sortKeys []schemas.GetListSortKey
+	err = schemas.DecodeGetListSort(input.Sort, &sortKeys)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid sort parameter", err)
+		return
+	}
+
 	if input.Page == nil {
 		input.Page = &defaultPage
 	}
@@ -69,13 +77,24 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		folder = f
 	}
 
-	// Get children
+	// Prepare get opts
+	var sortKeyOpt []models.GetFolderChildrenSortKey
+	for _, k := range sortKeys {
+		sortKeyOpt = append(sortKeyOpt, models.GetFolderChildrenSortKey{
+			Key:         k.Key,
+			OrderAsc:    k.OrderAsc,
+			OrderDesc:   k.OrderDesc,
+			OrderValues: k.OrderValues,
+		})
+	}
 	opts := models.GetFolderChildrenOpts{
-		Sort:        "Name ASC, ID ASC",
+		Sort:        sortKeyOpt,
 		Offset:      (*input.Page - 1) * *input.PageSize,
 		Limit:       *input.PageSize + 1,
 		ComputePath: true,
 	}
+
+	// Get children
 	children, totalCount, err := folder.GetChildren(controller.DB, &opts)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)

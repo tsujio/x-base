@@ -31,14 +31,12 @@ func TestGetFolder(t *testing.T) {
 			Path:       makePath(testutils.GetUUID("folder-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("folder-01"),
+				"id":             testutils.GetUUID("folder-01"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "folder-01",
-				"type":            "folder",
+				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
 						"type": "folder",
 					},
 				},

@@ -35,24 +35,20 @@ func TestGetTable(t *testing.T) {
 			Path:       makePath(testutils.GetUUID("table-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("table-01"),
+				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("table-01"),
-						"name": "table-01",
 						"type": "table",
 					},
 				},
 				"columns": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.GetUUID("column-01"),
+						"id":        testutils.GetUUID("column-01"),
 						"tableId":   testutils.GetUUID("table-01"),
-						"index":      float64(0),
-						"name":       "column-01",
-						"type":       "string",
+						"index":     float64(0),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},

@@ -13,7 +13,6 @@ import (
 
 type Organization struct {
 	ID        UUID
-	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

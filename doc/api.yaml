@@ -312,29 +312,18 @@ components:
           type: boolean
     CreateOrganizationInput:
       type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
     UpdateOrganizationInput:
       type: object
-      properties:
-        name:
-          type: string
     Organization:
       type: object
       required:
       - createdAt
       - id
-      - name
       - updatedAt
       properties:
         id:
           type: string
           format: uuid
-        name:
-          type: string
         createdAt:
           type: string
           format: date-time
@@ -357,7 +346,6 @@ components:
       required:
       - createdAt
       - id
-      - name
       - organizationId
       - path
       - type
@@ -374,15 +362,12 @@ components:
           enum:
           - folder
           - table
-        name:
-          type: string
         path:
           type: array
           items:
             type: object
             required:
             - id
-            - name
             - type
             properties:
               id:
@@ -393,8 +378,6 @@ components:
                 enum:
                 - folder
                 - table
-              name:
-                type: string
         createdAt:
           type: string
           format: date-time
@@ -404,14 +387,11 @@ components:
     CreateTableInput:
       type: object
       required:
-      - name
       - organizationId
       properties:
         organizationId:
           type: string
           format: uuid
-        name:
-          type: string
         parentFolderId:
           type: string
           format: uuid
@@ -422,8 +402,6 @@ components:
     UpdateTableInput:
       type: object
       properties:
-        name:
-          type: string
         parentFolderId:
           type: string
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the
@@ -440,30 +418,16 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Column'
-    ColumnType:
-      type: string
-      enum:
-      - string
     CreateColumnInput:
       type: object
-      required:
-      - name
       properties:
         index:
           type: integer
-        name:
-          type: string
-        type:
-          $ref: '#/components/schemas/ColumnType'
     UpdateColumnInput:
       type: object
       properties:
         index:
           type: integer
-        name:
-          type: string
-        type:
-          $ref: '#/components/schemas/ColumnType'
     ReorderColumnInput:
       type: object
       required:
@@ -480,9 +444,7 @@ components:
       - createdAt
       - id
       - index
-      - name
       - tableId
-      - type
       - updatedAt
       properties:
         id:
@@ -493,10 +455,6 @@ components:
           format: uuid
         index:
           type: integer
-        name:
-          type: string
-        type:
-          $ref: '#/components/schemas/ColumnType'
         createdAt:
           type: string
           format: date-time
@@ -824,22 +782,17 @@ components:
     CreateFolderInput:
       type: object
       required:
-      - name
       - organizationId
       properties:
         organizationId:
           type: string
           format: uuid
-        name:
-          type: string
         parentFolderId:
           type: string
           format: uuid
     UpdateFolderInput:
       type: object
       properties:
-        name:
-          type: string
         parentFolderId:
           type: string
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the

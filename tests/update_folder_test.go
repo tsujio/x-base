@@ -18,58 +18,6 @@ func TestUpdateFolder(t *testing.T) {
 
 	testCases := []testutils.APITestCase{
 		{
-			Title: "Name",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: folder-01
-				        children:
-				          - id: folder-02
-				          - id: folder-03
-				`)
-			},
-			Path: makePath(testutils.GetUUID("folder-02")),
-			Body: map[string]interface{}{
-				"name": "new-folder",
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("folder-02"),
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            "new-folder",
-				"type":            "folder",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
-						"type": "folder",
-					},
-					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-02"),
-						"name": "new-folder",
-						"type": "folder",
-					},
-				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				// Reacquire and compare with the previous response
-				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
-				if diff := testutils.CompareJson(output, res); diff != "" {
-					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
-				}
-
-				// Did not change other data
-				res = testutils.ServeGet(router, fmt.Sprintf("/folders/%s", testutils.GetUUID("folder-03")), nil)
-				if res["name"] != "folder-03" {
-					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["name"])
-				}
-			},
-		},
-		{
 			Title: "ParentFolderID",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -87,19 +35,16 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("folder-02"),
+				"id":             testutils.GetUUID("folder-02"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "folder-02",
-				"type":            "folder",
+				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
 						"type": "folder",
 					},
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-02"),
-						"name": "folder-02",
 						"type": "folder",
 					},
 				},
@@ -139,14 +84,12 @@ func TestUpdateFolder(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.GetUUID("folder-02"),
+				"id":             testutils.GetUUID("folder-02"),
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "folder-02",
-				"type":            "folder",
+				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-02"),
-						"name": "folder-02",
 						"type": "folder",
 					},
 				},

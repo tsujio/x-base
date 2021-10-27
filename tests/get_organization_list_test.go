@@ -37,14 +37,12 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.GetUUID("organization-03"),
-						"name":       "organization-03",
+						"id":        testutils.GetUUID("organization-03"),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
-						"id":         testutils.GetUUID("organization-04"),
-						"name":       "organization-04",
+						"id":        testutils.GetUUID("organization-04"),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},
@@ -72,8 +70,7 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.GetUUID("organization-02"),
-						"name":       "organization-02",
+						"id":        testutils.GetUUID("organization-02"),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},
@@ -97,8 +94,8 @@ func TestGetOrganizationList(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
-				"totalCount":   float64(2),
-				"hasNext":      false,
+				"totalCount":    float64(2),
+				"hasNext":       false,
 			},
 		},
 		{
@@ -115,8 +112,8 @@ func TestGetOrganizationList(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
-				"totalCount":   float64(1),
-				"hasNext":      true,
+				"totalCount":    float64(1),
+				"hasNext":       true,
 			},
 		},
 		{
@@ -168,8 +165,7 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.GetUUID("organization-01"),
-						"name":       "organization-01",
+						"id":        testutils.GetUUID("organization-01"),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},

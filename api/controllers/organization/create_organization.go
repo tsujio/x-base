@@ -23,9 +23,7 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	}
 
 	// Create organization
-	o := models.Organization{
-		Name: input.Name,
-	}
+	o := models.Organization{}
 	err = o.Create(controller.DB)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create organization", err)

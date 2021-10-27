@@ -9,18 +9,17 @@ import (
 
 type CreateFolderInput struct {
 	OrganizationID uuid.UUID  `json:"organizationId" validate:"required"`
-	Name           string     `json:"name" validate:"required,lte=100"`
 	ParentFolderID *uuid.UUID `json:"parentFolderId"`
 }
 
 type UpdateFolderInput struct {
-	Name           *string    `json:"name" validate:"omitempty,gt=0,lte=100"`
 	ParentFolderID *uuid.UUID `json:"parentFolderId"`
 }
 
 type GetFolderChildrenInput struct {
 	PaginationInput
 	OrganizationID uuid.UUID `schema:"organizationId"`
+	Sort           string    `schema:"sort"`
 }
 
 type Folder struct {
@@ -54,7 +53,6 @@ type TableFilesystemEntry struct {
 	ID             uuid.UUID                  `json:"id"`
 	OrganizationID uuid.UUID                  `json:"organizationId"`
 	Type           string                     `json:"type"`
-	Name           string                     `json:"name"`
 	Path           []TableFilesystemPathEntry `json:"path"`
 	CreatedAt      time.Time                  `json:"createdAt"`
 	UpdatedAt      time.Time                  `json:"updatedAt"`
@@ -63,5 +61,4 @@ type TableFilesystemEntry struct {
 type TableFilesystemPathEntry struct {
 	ID   uuid.UUID `json:"id"`
 	Type string    `json:"type"`
-	Name string    `json:"name"`
 }

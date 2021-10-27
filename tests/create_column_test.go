@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"gorm.io/gorm"
@@ -41,18 +40,13 @@ func TestCreateColumn(t *testing.T) {
 				      - id: table-01
 				`)
 			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "column-01",
-				"type": "string",
-			},
+			Path:       makePath(testutils.GetUUID("table-01")),
+			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
+				"id":        testutils.UUID{},
 				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(0),
-				"name":       "column-01",
-				"type":       "string",
+				"index":     float64(0),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -81,18 +75,13 @@ func TestCreateColumn(t *testing.T) {
 				          - id: column-01
 				`)
 			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "column-02",
-				"type": "string",
-			},
+			Path:       makePath(testutils.GetUUID("table-01")),
+			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
+				"id":        testutils.UUID{},
 				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(1),
-				"name":       "column-02",
-				"type":       "string",
+				"index":     float64(1),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -124,17 +113,13 @@ func TestCreateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"name":  "column-02",
-				"type":  "string",
 				"index": 0,
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
+				"id":        testutils.UUID{},
 				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(0),
-				"name":       "column-02",
-				"type":       "string",
+				"index":     float64(0),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -153,104 +138,6 @@ func TestCreateColumn(t *testing.T) {
 			},
 		},
 		{
-			Title: "Empty name",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: table-01
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "",
-				"type": "string",
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
-			},
-		},
-		{
-			Title: "Name length=100",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: table-01
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 100),
-				"type": "string",
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(0),
-				"name":       strings.Repeat("あ", 100),
-				"type":       "string",
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
-				// Reacquire and compare with the previous response
-				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-01")), nil)
-				if diff := testutils.CompareJson(output, res["columns"].([]interface{})[0]); diff != "" {
-					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
-				}
-
-				// Check columns
-				testColumnOrder(tc, router, testutils.GetUUID("table-01"), []uuid.UUID{
-					uuid.MustParse(output["id"].(string)),
-				})
-			},
-		},
-		{
-			Title: "Name length=101",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: table-01
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": strings.Repeat("あ", 101),
-				"type": "string",
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
-			},
-		},
-		{
-			Title: "Invalid column type",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				    tables:
-				      - id: table-01
-				`)
-			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "column-01",
-				"type": "invalid",
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bType\b`},
-			},
-		},
-		{
 			Title: "Negative index",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -262,8 +149,6 @@ func TestCreateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"name":  "column-01",
-				"type":  "string",
 				"index": -1,
 			},
 			StatusCode: http.StatusBadRequest,
@@ -285,17 +170,13 @@ func TestCreateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"name":  "column-02",
-				"type":  "string",
 				"index": 999,
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.UUID{},
+				"id":        testutils.UUID{},
 				"tableId":   testutils.GetUUID("table-01"),
-				"index":      float64(1),
-				"name":       "column-02",
-				"type":       "string",
+				"index":     float64(1),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -327,8 +208,6 @@ func TestCreateColumn(t *testing.T) {
 			},
 			Path: makePath(testutils.GetUUID("table-01")),
 			Body: map[string]interface{}{
-				"name":  "column-02",
-				"type":  "string",
 				"index": 1000,
 			},
 			StatusCode: http.StatusBadRequest,
@@ -344,11 +223,8 @@ func TestCreateColumn(t *testing.T) {
 				  - id: org1
 				`)
 			},
-			Path: makePath(testutils.GetUUID("table-01")),
-			Body: map[string]interface{}{
-				"name": "column-01",
-				"type": "string",
-			},
+			Path:       makePath(testutils.GetUUID("table-01")),
+			Body:       map[string]interface{}{},
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
 				"message": "Table not found",

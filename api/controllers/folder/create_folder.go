@@ -47,7 +47,6 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 	f := models.Folder{
 		TableFilesystemEntry: models.TableFilesystemEntry{
 			OrganizationID: models.UUID(input.OrganizationID),
-			Name:           input.Name,
 			ParentFolderID: (*models.UUID)(input.ParentFolderID),
 		},
 	}

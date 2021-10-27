@@ -12,16 +12,13 @@ type GetOrganizationListInput struct {
 }
 
 type CreateOrganizationInput struct {
-	Name string `json:"name" validate:"required,lte=100"`
 }
 
 type UpdateOrganizationInput struct {
-	Name *string `json:"name" validate:"omitempty,gt=0,lte=100"`
 }
 
 type Organization struct {
 	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

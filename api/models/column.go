@@ -15,19 +15,8 @@ type Column struct {
 	ID        UUID
 	TableID   UUID
 	Index     int
-	Name      string
-	Type      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-}
-
-func IsValidColumnType(typ string) bool {
-	for _, t := range []string{"string", "integer", "float", "boolean"} {
-		if t == typ {
-			return true
-		}
-	}
-	return false
 }
 
 func moveColumnIndicesToTemporaryAddress(db *gorm.DB, tableID UUID) error {
@@ -101,10 +90,6 @@ func ReorderColumns(db *gorm.DB, tableID UUID, order []UUID) error {
 }
 
 func (c *Column) BeforeSave(db *gorm.DB) error {
-	if !IsValidColumnType(c.Type) {
-		return fmt.Errorf("Invalid column type (%s)", c.Type)
-	}
-
 	// Shift indices
 	if err := db.Model(&Column{}).
 		Where("table_id = ? AND `index` >= ?", c.TableID, c.Index).

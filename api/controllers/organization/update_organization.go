@@ -47,9 +47,6 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	}
 
 	// Update
-	if input.Name != nil {
-		organization.Name = *input.Name
-	}
 	err = organization.Save(controller.DB)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to save organization", err)

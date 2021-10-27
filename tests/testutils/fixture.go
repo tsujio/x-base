@@ -65,31 +65,14 @@ func createOrganization(organization interface{}, path string) error {
 		o := models.Organization{}
 
 		// ID
-		var idName string
 		if id, exists := org["id"]; exists {
 			if idStr, ok := id.(string); !ok {
 				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".id", id)
 			} else {
-				idName = idStr
 				o.ID = models.UUID(GetUUID(idStr))
 			}
 		} else {
 			o.ID = models.UUID(uuid.New())
-		}
-
-		// Name
-		if name, exists := org["name"]; !exists {
-			if idName != "" {
-				o.Name = idName
-			} else {
-				return fmt.Errorf(".name required: path=%s", path)
-			}
-		} else {
-			if nameStr, ok := name.(string); !ok {
-				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".name", name)
-			} else {
-				o.Name = nameStr
-			}
 		}
 
 		// CreatedAt
@@ -175,31 +158,14 @@ func makeTableFilesystemEntry(entry map[string]interface{}, path string, organiz
 	e := &models.TableFilesystemEntry{}
 
 	// ID
-	var idName string
 	if id, exists := entry["id"]; exists {
 		if idStr, ok := id.(string); !ok {
 			return nil, fmt.Errorf("Invalid type: path=%s, type=%T", path+".id", id)
 		} else {
-			idName = idStr
 			e.ID = models.UUID(GetUUID(idStr))
 		}
 	} else {
 		e.ID = models.UUID(uuid.New())
-	}
-
-	// Name
-	if name, exists := entry["name"]; !exists {
-		if idName != "" {
-			e.Name = idName
-		} else {
-			return nil, fmt.Errorf(".name required: path=%s", path)
-		}
-	} else {
-		if nameStr, ok := name.(string); !ok {
-			return nil, fmt.Errorf("Invalid type: path=%s, type=%T", path+".name", name)
-		} else {
-			e.Name = nameStr
-		}
 	}
 
 	// OrganizationID
@@ -297,42 +263,14 @@ func createColumn(column interface{}, path string, table models.Table, index int
 		c := &models.Column{}
 
 		// ID
-		var idName string
 		if id, exists := col["id"]; exists {
 			if idStr, ok := id.(string); !ok {
 				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".id", id)
 			} else {
-				idName = idStr
 				c.ID = models.UUID(GetUUID(idStr))
 			}
 		} else {
 			c.ID = models.UUID(uuid.New())
-		}
-
-		// Name
-		if name, exists := col["name"]; !exists {
-			if idName != "" {
-				c.Name = idName
-			} else {
-				return fmt.Errorf(".name required: path=%s", path)
-			}
-		} else {
-			if nameStr, ok := name.(string); !ok {
-				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".name", name)
-			} else {
-				c.Name = nameStr
-			}
-		}
-
-		// Type
-		if typ, exists := col["type"]; !exists {
-			c.Type = "string"
-		} else {
-			if typeStr, ok := typ.(string); !ok {
-				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".type", typ)
-			} else {
-				c.Type = typeStr
-			}
 		}
 
 		// TableID

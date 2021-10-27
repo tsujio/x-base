@@ -56,8 +56,6 @@ func (controller *TableController) CreateColumn(w http.ResponseWriter, r *http.R
 	column := &models.Column{
 		TableID: table.ID,
 		Index:   idx,
-		Name:    input.Name,
-		Type:    input.Type,
 	}
 	err = controller.DB.Transaction(func(tx *gorm.DB) error {
 		return column.Create(tx, false)

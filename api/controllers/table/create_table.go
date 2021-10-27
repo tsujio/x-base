@@ -49,7 +49,6 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 		t := &models.Table{
 			TableFilesystemEntry: models.TableFilesystemEntry{
 				OrganizationID: models.UUID(input.OrganizationID),
-				Name:           input.Name,
 				ParentFolderID: (*models.UUID)(input.ParentFolderID),
 			},
 		}
@@ -60,12 +59,10 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 
 		// Create columns
 		if len(input.Columns) > 0 {
-			for i, c := range input.Columns {
+			for i := range input.Columns {
 				col := &models.Column{
 					TableID: t.ID,
 					Index:   i,
-					Name:    c.Name,
-					Type:    c.Type,
 				}
 				err := col.Create(tx, true)
 				if err != nil {

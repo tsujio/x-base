@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"gorm.io/gorm"
@@ -23,22 +22,19 @@ func TestCreateTable(t *testing.T) {
 			},
 			Body: map[string]interface{}{
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.UUID{},
+				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.UUID{},
-						"name": "table-01",
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns":   []interface{}{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -58,24 +54,21 @@ func TestCreateTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organizationId":  testutils.GetUUID("org1"),
-				"name":             "table-01",
+				"organizationId": testutils.GetUUID("org1"),
 				"parentFolderId": "00000000-0000-0000-0000-000000000000",
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.UUID{},
+				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.UUID{},
-						"name": "table-01",
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns":   []interface{}{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -100,34 +93,29 @@ func TestCreateTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organizationId":  testutils.GetUUID("org1"),
-				"name":             "table-01",
+				"organizationId": testutils.GetUUID("org1"),
 				"parentFolderId": testutils.GetUUID("folder-02"),
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.UUID{},
+				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-01"),
-						"name": "folder-01",
 						"type": "folder",
 					},
 					map[string]interface{}{
 						"id":   testutils.GetUUID("folder-02"),
-						"name": "folder-02",
 						"type": "folder",
 					},
 					map[string]interface{}{
 						"id":   testutils.UUID{},
-						"name": "table-01",
 						"type": "table",
 					},
 				},
-				"columns":    []interface{}{},
+				"columns":   []interface{}{},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},
@@ -139,70 +127,6 @@ func TestCreateTable(t *testing.T) {
 			},
 		},
 		{
-			Title: "Empty name",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				`)
-			},
-			Body: map[string]interface{}{
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            "",
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
-			},
-		},
-		{
-			Title: "Name length=100",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				`)
-			},
-			Body: map[string]interface{}{
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            strings.Repeat("あ", 100),
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"id":              testutils.UUID{},
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            strings.Repeat("あ", 100),
-				"type":            "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":   testutils.UUID{},
-						"name": strings.Repeat("あ", 100),
-						"type": "table",
-					},
-				},
-				"columns":    []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
-			},
-		},
-		{
-			Title: "Name length=101",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: org1
-				`)
-			},
-			Body: map[string]interface{}{
-				"organizationId": testutils.GetUUID("org1"),
-				"name":            strings.Repeat("あ", 101),
-			},
-			StatusCode: http.StatusBadRequest,
-			Output: map[string]interface{}{
-				"message": testutils.Regexp{Pattern: `\bName\b`},
-			},
-		},
-		{
 			Title: "Parent not found",
 			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
 				return testutils.LoadFixture(`
@@ -211,8 +135,7 @@ func TestCreateTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organizationId":  testutils.GetUUID("org1"),
-				"name":             "table-01",
+				"organizationId": testutils.GetUUID("org1"),
 				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusBadRequest,
@@ -232,8 +155,7 @@ func TestCreateTable(t *testing.T) {
 				`)
 			},
 			Body: map[string]interface{}{
-				"organizationId":  testutils.GetUUID("org1"),
-				"name":             "table-01",
+				"organizationId": testutils.GetUUID("org1"),
 				"parentFolderId": testutils.GetUUID("folder-01"),
 			},
 			StatusCode: http.StatusBadRequest,
@@ -251,47 +173,34 @@ func TestCreateTable(t *testing.T) {
 			},
 			Body: map[string]interface{}{
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
 				"columns": []interface{}{
-					map[string]interface{}{
-						"name": "column-01",
-						"type": "string",
-					},
-					map[string]interface{}{
-						"name": "column-02",
-						"type": "string",
-					},
+					map[string]interface{}{},
+					map[string]interface{}{},
 				},
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":              testutils.UUID{},
+				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
-				"name":            "table-01",
-				"type":            "table",
+				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
 						"id":   testutils.UUID{},
-						"name": "table-01",
 						"type": "table",
 					},
 				},
 				"columns": []interface{}{
 					map[string]interface{}{
-						"id":         testutils.UUID{},
+						"id":        testutils.UUID{},
 						"tableId":   testutils.UUID{},
-						"index":      float64(0),
-						"name":       "column-01",
-						"type":       "string",
+						"index":     float64(0),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},
 					map[string]interface{}{
-						"id":         testutils.UUID{},
+						"id":        testutils.UUID{},
 						"tableId":   testutils.UUID{},
-						"index":      float64(1),
-						"name":       "column-02",
-						"type":       "string",
+						"index":     float64(1),
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},
 					},

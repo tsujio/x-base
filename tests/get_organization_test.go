@@ -29,8 +29,7 @@ func TestGetOrganization(t *testing.T) {
 			Path:       makePath(testutils.GetUUID("organization-01")),
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":         testutils.GetUUID("organization-01"),
-				"name":       "organization-01",
+				"id":        testutils.GetUUID("organization-01"),
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},
 			},

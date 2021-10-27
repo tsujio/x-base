@@ -65,9 +65,6 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	}
 
 	// Update
-	if input.Name != nil {
-		table.Name = *input.Name
-	}
 	if input.ParentFolderID != nil {
 		table.ParentFolderID = (*models.UUID)(input.ParentFolderID)
 	}

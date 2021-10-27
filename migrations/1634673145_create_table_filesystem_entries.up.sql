@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS table_filesystem_entries (
     id BINARY(16) NOT NULL,
     organization_id BINARY(16) NOT NULL,
-    name VARCHAR(100) NOT NULL,
     type CHAR(16) NOT NULL,
     parent_folder_id BINARY(16),
     created_at DATETIME NOT NULL,
