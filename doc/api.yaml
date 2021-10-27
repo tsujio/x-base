@@ -13,6 +13,7 @@ paths:
       - Organization
       summary: Get organization list
       parameters:
+      - $ref: "#/components/parameters/sort"
       - $ref: "#/components/parameters/page"
       - $ref: "#/components/parameters/pageSize"
       responses:
@@ -289,6 +290,7 @@ paths:
         retrieving entries at the root folder of the organization.
       parameters:
       - $ref: "#/components/parameters/organizationIdQuery"
+      - $ref: "#/components/parameters/sort"
       - $ref: "#/components/parameters/page"
       - $ref: "#/components/parameters/pageSize"
       responses:
@@ -847,6 +849,16 @@ components:
       schema:
         type: string
         format: uuid
+    sort:
+      description: |
+        `FIELD:asc` or `FIELD:desc` mean "Sort by FIELD in ascending/descending order".
+        `FIELD:(value1 value2)` means "Sort by FIELD in order of value1, value2".
+        Multiple sort fields are joined with ",".
+      name: sort
+      in: query
+      schema:
+        type: string
+      example: "field1:asc,field2:desc,field3:(value1 value2)"
     page:
       name: page
       in: query
