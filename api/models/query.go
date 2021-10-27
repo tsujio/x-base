@@ -259,11 +259,11 @@ func (q *DeleteQuery) Execute(db *gorm.DB) error {
 	return nil
 }
 
-type MetadataExprKey string
+type MetadataExprKey int
 
 const (
-	MetadataExprKeyID        MetadataExprKey = "id"
-	MetadataExprKeyCreatedAt MetadataExprKey = "createdAt"
+	MetadataExprKeyID MetadataExprKey = iota
+	MetadataExprKeyCreatedAt
 )
 
 type MetadataExpr struct {
@@ -277,7 +277,7 @@ func (e MetadataExpr) BuildSQL() (string, []interface{}, error) {
 	case MetadataExprKeyCreatedAt:
 		return " created_at ", nil, nil
 	default:
-		return "", nil, fmt.Errorf("Invalid metadata key: %s", e.Key)
+		return "", nil, fmt.Errorf("Invalid metadata key: %v", e.Key)
 	}
 }
 
@@ -304,10 +304,10 @@ func (e ValueExpr) BuildSQL() (string, []interface{}, error) {
 	return " ? ", []interface{}{e.Value}, nil
 }
 
-type FuncExprFunc string
+type FuncExprFunc int
 
 const (
-	FuncExprFuncCount FuncExprFunc = "COUNT"
+	FuncExprFuncCount FuncExprFunc = iota
 )
 
 type FuncExpr struct {
@@ -326,7 +326,16 @@ func (e FuncExpr) BuildSQL() (string, []interface{}, error) {
 		args = append(args, s)
 		params = append(params, p...)
 	}
-	return fmt.Sprintf(" %s(%s) ", e.Func, strings.Join(args, ", ")), params, nil
+
+	var fn string
+	switch e.Func {
+	case FuncExprFuncCount:
+		fn = "COUNT"
+	default:
+		return "", nil, fmt.Errorf("Invalid func: %v", e.Func)
+	}
+
+	return fmt.Sprintf(" %s(%s) ", fn, strings.Join(args, ", ")), params, nil
 }
 
 type UnaryOpExpr struct {
@@ -532,13 +541,6 @@ type TableExpr struct {
 	Table Table
 }
 
-type SortKeyOrder string
-
-const (
-	SortKeyOrderAsc  SortKeyOrder = "ASC"
-	SortKeyOrderDesc SortKeyOrder = "DESC"
-)
-
 type SelectColumn struct {
 	Column SQLBuilder
 	As     string
@@ -560,6 +562,13 @@ func (c SelectColumn) BuildSQL() (string, []interface{}, error) {
 	return sql, params, nil
 }
 
+type SortKeyOrder int
+
+const (
+	SortKeyOrderAsc SortKeyOrder = iota
+	SortKeyOrderDesc
+)
+
 type SortKey struct {
 	Key   SQLBuilder
 	Order SortKeyOrder
@@ -571,7 +580,14 @@ func (k SortKey) BuildSQL() (string, []interface{}, error) {
 		return "", nil, xerrors.Errorf("Failed to build sort key sql: %w", err)
 	}
 
-	sql += " " + string(k.Order) + " "
+	switch k.Order {
+	case SortKeyOrderAsc:
+		sql += " ASC "
+	case SortKeyOrderDesc:
+		sql += " DESC "
+	default:
+		return "", nil, fmt.Errorf("Invalid sort order: %v", k.Order)
+	}
 
 	return sql, params, nil
 }
