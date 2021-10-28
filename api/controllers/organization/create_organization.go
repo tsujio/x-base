@@ -23,7 +23,13 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 	}
 
 	// Create organization
-	o := models.Organization{}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
+	o := models.Organization{
+		Properties: input.Properties,
+	}
 	err = o.Create(controller.DB)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to create organization", err)

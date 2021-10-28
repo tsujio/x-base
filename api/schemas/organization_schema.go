@@ -12,15 +12,26 @@ type GetOrganizationListInput struct {
 }
 
 type CreateOrganizationInput struct {
+	Properties map[string]interface{} `json:"properties"`
 }
 
 type UpdateOrganizationInput struct {
+	Properties map[string]interface{} `json:"properties"`
 }
 
 type Organization struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID         uuid.UUID              `json:"id"`
+	Properties map[string]interface{} `json:"properties"`
+	CreatedAt  time.Time              `json:"createdAt"`
+	UpdatedAt  time.Time              `json:"updatedAt"`
+}
+
+func (o Organization) MarshalJSON() ([]byte, error) {
+	if o.Properties == nil {
+		o.Properties = make(map[string]interface{})
+	}
+	type Alias Organization
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(o)})
 }
 
 type OrganizationList struct {

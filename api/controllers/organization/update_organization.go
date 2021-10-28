@@ -47,6 +47,13 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	}
 
 	// Update
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
+	for k, v := range input.Properties {
+		organization.Properties[k] = v
+	}
 	err = organization.Save(controller.DB)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to save organization", err)

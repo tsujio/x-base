@@ -37,14 +37,16 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":        testutils.GetUUID("organization-03"),
-						"createdAt": testutils.Timestamp{},
-						"updatedAt": testutils.Timestamp{},
+						"id":         testutils.GetUUID("organization-03"),
+						"properties": map[string]interface{}{},
+						"createdAt":  testutils.Timestamp{},
+						"updatedAt":  testutils.Timestamp{},
 					},
 					map[string]interface{}{
-						"id":        testutils.GetUUID("organization-04"),
-						"createdAt": testutils.Timestamp{},
-						"updatedAt": testutils.Timestamp{},
+						"id":         testutils.GetUUID("organization-04"),
+						"properties": map[string]interface{}{},
+						"createdAt":  testutils.Timestamp{},
+						"updatedAt":  testutils.Timestamp{},
 					},
 				},
 				"totalCount": float64(5),
@@ -70,9 +72,10 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":        testutils.GetUUID("organization-02"),
-						"createdAt": testutils.Timestamp{},
-						"updatedAt": testutils.Timestamp{},
+						"id":         testutils.GetUUID("organization-02"),
+						"properties": map[string]interface{}{},
+						"createdAt":  testutils.Timestamp{},
+						"updatedAt":  testutils.Timestamp{},
 					},
 				},
 				"totalCount": float64(2),
@@ -165,9 +168,10 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{
 					map[string]interface{}{
-						"id":        testutils.GetUUID("organization-01"),
-						"createdAt": testutils.Timestamp{},
-						"updatedAt": testutils.Timestamp{},
+						"id":         testutils.GetUUID("organization-01"),
+						"properties": map[string]interface{}{},
+						"createdAt":  testutils.Timestamp{},
+						"updatedAt":  testutils.Timestamp{},
 					},
 				},
 				"totalCount": float64(1),

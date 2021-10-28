@@ -12,9 +12,10 @@ import (
 )
 
 type Organization struct {
-	ID        UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         UUID
+	Properties Properties
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type GetOrganizationListOpts struct {

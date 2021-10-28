@@ -75,6 +75,15 @@ func createOrganization(organization interface{}, path string) error {
 			o.ID = models.UUID(uuid.New())
 		}
 
+		// Properties
+		if properties, exists := org["properties"]; exists {
+			if props, ok := properties.(map[string]interface{}); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".properties", properties)
+			} else {
+				o.Properties = props
+			}
+		}
+
 		// CreatedAt
 		if createdAt, exists := org["createdAt"]; exists {
 			if createdAtStr, ok := createdAt.(string); !ok {
