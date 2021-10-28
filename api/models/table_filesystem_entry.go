@@ -35,19 +35,20 @@ func (e *TableFilesystemEntry) GetFolder(db *gorm.DB) (*Folder, error) {
 }
 
 type TableFilesystemPathEntry struct {
-	ID   UUID
-	Type string
+	ID         UUID
+	Type       string
+	Properties Properties
 }
 
 func (e *TableFilesystemEntry) ComputePath(db *gorm.DB) error {
 	var entries []TableFilesystemPathEntry
 	err := db.Raw(`
-	WITH recursive rec(id, organization_id, type, parent_folder_id, depth, all_ids) AS (
-	    SELECT id, organization_id, type, parent_folder_id, 0, JSON_ARRAY(id)
+	WITH recursive rec(id, organization_id, type, parent_folder_id, properties, depth, all_ids) AS (
+	    SELECT id, organization_id, type, parent_folder_id, properties, 0, JSON_ARRAY(id)
 	    FROM table_filesystem_entries
 	    WHERE id = ?
 	    UNION ALL
-	    SELECT e.id, e.organization_id, e.type, e.parent_folder_id, rec.depth - 1, JSON_ARRAY_APPEND(rec.all_ids, '$', e.id)
+	    SELECT e.id, e.organization_id, e.type, e.parent_folder_id, e.properties, rec.depth - 1, JSON_ARRAY_APPEND(rec.all_ids, '$', e.id)
 	    FROM rec
 	    INNER JOIN folders AS f
 	    ON f.id = rec.parent_folder_id
@@ -57,8 +58,9 @@ func (e *TableFilesystemEntry) ComputePath(db *gorm.DB) error {
 	    WHERE rec.parent_folder_id IS NOT NULL AND
 	          NOT JSON_CONTAINS(rec.all_ids, CAST(e.id AS JSON), '$')
 	)
-	SELECT id, type
+	SELECT id, type, properties
 	FROM rec
+	WHERE depth != 0
 	ORDER BY depth ASC
 	`, e.ID).Scan(&entries).Error
 	if err != nil {

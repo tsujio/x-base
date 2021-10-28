@@ -38,13 +38,7 @@ func TestGetTable(t *testing.T) {
 				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.GetUUID("table-01"),
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
+				"path":           []interface{}{},
 				"columns": []interface{}{
 					map[string]interface{}{
 						"id":        testutils.GetUUID("column-01"),

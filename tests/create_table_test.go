@@ -28,17 +28,11 @@ func TestCreateTable(t *testing.T) {
 				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"columns":    []interface{}{},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"columns":        []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
@@ -64,17 +58,11 @@ func TestCreateTable(t *testing.T) {
 				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"columns":    []interface{}{},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"columns":        []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
@@ -114,11 +102,6 @@ func TestCreateTable(t *testing.T) {
 					map[string]interface{}{
 						"id":         testutils.GetUUID("folder-02"),
 						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "table",
 						"properties": map[string]interface{}{},
 					},
 				},
@@ -191,13 +174,7 @@ func TestCreateTable(t *testing.T) {
 				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
+				"path":           []interface{}{},
 				"columns": []interface{}{
 					map[string]interface{}{
 						"id":        testutils.UUID{},

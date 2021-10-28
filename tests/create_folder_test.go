@@ -28,16 +28,10 @@ func TestCreateFolder(t *testing.T) {
 				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "folder",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
@@ -63,16 +57,10 @@ func TestCreateFolder(t *testing.T) {
 				"id":             testutils.UUID{},
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "folder",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.UUID{},
-						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
@@ -111,11 +99,6 @@ func TestCreateFolder(t *testing.T) {
 					},
 					map[string]interface{}{
 						"id":         testutils.GetUUID("folder-02"),
-						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
-					map[string]interface{}{
-						"id":         testutils.UUID{},
 						"type":       "folder",
 						"properties": map[string]interface{}{},
 					},

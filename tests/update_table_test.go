@@ -44,11 +44,6 @@ func TestUpdateTable(t *testing.T) {
 						"type":       "folder",
 						"properties": map[string]interface{}{},
 					},
-					map[string]interface{}{
-						"id":         testutils.GetUUID("table-01"),
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
 				},
 				"columns":    []interface{}{},
 				"properties": map[string]interface{}{},
@@ -64,7 +59,7 @@ func TestUpdateTable(t *testing.T) {
 
 				// Did not change other data
 				res = testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
-				if len(res["path"].([]interface{})) != 1 {
+				if len(res["path"].([]interface{})) != 0 {
 					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["path"])
 				}
 			},
@@ -91,17 +86,11 @@ func TestUpdateTable(t *testing.T) {
 				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.GetUUID("table-01"),
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"columns":    []interface{}{},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"columns":        []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -112,7 +101,7 @@ func TestUpdateTable(t *testing.T) {
 
 				// Did not change other data
 				res = testutils.ServeGet(router, fmt.Sprintf("/tables/%s", testutils.GetUUID("table-02")), nil)
-				if len(res["path"].([]interface{})) != 2 {
+				if len(res["path"].([]interface{})) != 1 {
 					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["path"])
 				}
 			},
@@ -194,13 +183,7 @@ func TestUpdateTable(t *testing.T) {
 				"id":             testutils.GetUUID("table-01"),
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "table",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.GetUUID("table-01"),
-						"type":       "table",
-						"properties": map[string]interface{}{},
-					},
-				},
+				"path":           []interface{}{},
 				"columns": []interface{}{
 					map[string]interface{}{
 						"id":        testutils.GetUUID("column-01"),

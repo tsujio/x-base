@@ -44,11 +44,6 @@ func TestUpdateFolder(t *testing.T) {
 						"type":       "folder",
 						"properties": map[string]interface{}{},
 					},
-					map[string]interface{}{
-						"id":         testutils.GetUUID("folder-02"),
-						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
 				},
 				"properties": map[string]interface{}{},
 				"createdAt":  testutils.Timestamp{},
@@ -63,7 +58,7 @@ func TestUpdateFolder(t *testing.T) {
 
 				// Did not change other data
 				res = testutils.ServeGet(router, fmt.Sprintf("/folders/%s", testutils.GetUUID("folder-03")), nil)
-				if len(res["path"].([]interface{})) != 1 {
+				if len(res["path"].([]interface{})) != 0 {
 					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["path"])
 				}
 			},
@@ -90,16 +85,10 @@ func TestUpdateFolder(t *testing.T) {
 				"id":             testutils.GetUUID("folder-02"),
 				"organizationId": testutils.GetUUID("org1"),
 				"type":           "folder",
-				"path": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.GetUUID("folder-02"),
-						"type":       "folder",
-						"properties": map[string]interface{}{},
-					},
-				},
-				"properties": map[string]interface{}{},
-				"createdAt":  testutils.Timestamp{},
-				"updatedAt":  testutils.Timestamp{},
+				"path":           []interface{}{},
+				"properties":     map[string]interface{}{},
+				"createdAt":      testutils.Timestamp{},
+				"updatedAt":      testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -110,7 +99,7 @@ func TestUpdateFolder(t *testing.T) {
 
 				// Did not change other data
 				res = testutils.ServeGet(router, fmt.Sprintf("/folders/%s", testutils.GetUUID("folder-03")), nil)
-				if len(res["path"].([]interface{})) != 2 {
+				if len(res["path"].([]interface{})) != 1 {
 					t.Errorf("[%s] Modified other data:\n%s", tc.Title, res["path"])
 				}
 			},

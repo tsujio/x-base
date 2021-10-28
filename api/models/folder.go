@@ -19,13 +19,17 @@ type GetFolderChildrenOpts struct {
 }
 
 func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]TableFilesystemEntry, int64, error) {
-	var parentPath []TableFilesystemPathEntry
+	var path []TableFilesystemPathEntry
 	if opts.ComputePath && f.ID != UUID(uuid.Nil) {
 		e := &TableFilesystemEntry{ID: f.ID}
 		if err := e.ComputePath(db); err != nil {
 			return nil, 0, xerrors.Errorf("Failed to get path: %w", err)
 		}
-		parentPath = e.Path
+		path = append(e.Path, TableFilesystemPathEntry{
+			ID:         f.ID,
+			Type:       f.Type,
+			Properties: f.Properties,
+		})
 	}
 
 	conds := []func(db *gorm.DB) *gorm.DB{
@@ -55,13 +59,9 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]TableF
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to children: %w", err)
 	}
-	for i := range children {
-		if opts.ComputePath {
-			c := &children[i]
-			c.Path = append(append([]TableFilesystemPathEntry{}, parentPath...), TableFilesystemPathEntry{
-				ID:   c.ID,
-				Type: c.Type,
-			})
+	if opts.ComputePath {
+		for i := range children {
+			children[i].Path = path
 		}
 	}
 
