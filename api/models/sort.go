@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/tsujio/x-base/api/utils/arrays"
 	utilstrings "github.com/tsujio/x-base/api/utils/strings"
 )
 
@@ -29,30 +30,17 @@ func convertGetListSortKeyToOrderString(sortKeys []GetListSortKey, sortableKeys 
 				return "", fmt.Errorf("Invalid sort option (not a categorical key)")
 			}
 			var cases string
-			for i, value := range s.OrderValues {
-				var match bool
-				for _, v := range values {
-					if v == value {
-						match = true
-						break
-					}
-				}
-				if !match {
+			for i, v := range s.OrderValues {
+				if !arrays.StringSliceContains(values, v) {
 					return "", fmt.Errorf("Invalid sort option (value list)")
 				}
-				cases += fmt.Sprintf(" WHEN %s = '%s' THEN %d ", key, value, i)
+				cases += fmt.Sprintf(" WHEN %s = '%s' THEN %d ", key, v, i)
 			}
 			orders = append(orders, fmt.Sprintf("CASE %s ELSE %d END ASC", cases, len(s.OrderValues)))
 			continue
 		}
 
-		var found bool
-		for _, k := range sortableKeys {
-			if k == key {
-				found = true
-			}
-		}
-		if found {
+		if arrays.StringSliceContains(sortableKeys, key) {
 			var o string
 			if s.OrderAsc {
 				o = "ASC"

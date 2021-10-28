@@ -9,6 +9,11 @@ import (
 
 type GetOrganizationListInput struct {
 	PaginationInput
+	Properties string `schema:"properties"`
+}
+
+type GetOrganizationInput struct {
+	Properties string `schema:"properties"`
 }
 
 type CreateOrganizationInput struct {

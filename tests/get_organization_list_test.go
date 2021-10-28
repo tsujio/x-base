@@ -194,6 +194,38 @@ func TestGetOrganizationList(t *testing.T) {
 				"message": testutils.Regexp{Pattern: `\bPageSize\b`},
 			},
 		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				    properties:
+				      key1: value1
+				      key2: value2
+				      key3: value3
+				`)
+			},
+			Query: url.Values{
+				"properties": []string{"key1,key2"},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"organizations": []interface{}{
+					map[string]interface{}{
+						"id": testutils.GetUUID("organization-01"),
+						"properties": map[string]interface{}{
+							"key1": "value1",
+							"key2": "value2",
+						},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
+					},
+				},
+				"totalCount": float64(1),
+				"hasNext":    false,
+			},
+		},
 	}
 
 	for _, tc := range testCases {

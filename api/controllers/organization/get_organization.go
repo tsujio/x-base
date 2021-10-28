@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -27,6 +28,14 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 		return
 	}
 
+	// Decode request parameters
+	var input schemas.GetOrganizationInput
+	err = schemas.DecodeQuery(r.URL.Query(), &input)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
+		return
+	}
+
 	// Fetch
 	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
 	if err != nil {
@@ -44,6 +53,15 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
+	}
+	if input.Properties != "" {
+		props := make(map[string]interface{})
+		for _, k := range strings.Split(input.Properties, ",") {
+			if v, exists := output.Properties[k]; exists {
+				props[k] = v
+			}
+		}
+		output.Properties = props
 	}
 
 	// Send response

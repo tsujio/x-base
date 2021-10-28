@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/tsujio/x-base/api/utils/arrays"
 	"golang.org/x/xerrors"
 )
 
@@ -467,13 +468,7 @@ func DecodeFuncExpr(input interface{}, path string) (*FuncExpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid type: expected=string, got=%T, path=%s.func", fn, path)
 	}
-	var found bool
-	for _, s := range []string{"count"} {
-		if s == f {
-			found = true
-		}
-	}
-	if !found {
+	if !arrays.StringSliceContains([]string{"count"}, f) {
 		return nil, fmt.Errorf("Invalid func: path=%s.func", path)
 	}
 	expr.Func = f

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/jinzhu/copier"
 
@@ -56,6 +57,18 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
+	}
+	if input.Properties != "" {
+		for i := range output.Organizations {
+			o := &output.Organizations[i]
+			props := make(map[string]interface{})
+			for _, k := range strings.Split(input.Properties, ",") {
+				if v, exists := o.Properties[k]; exists {
+					props[k] = v
+				}
+			}
+			o.Properties = props
+		}
 	}
 	output.TotalCount = totalCount
 	output.HasNext = hasNext
