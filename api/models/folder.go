@@ -41,12 +41,7 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]TableF
 		},
 	}
 
-	order, err := convertGetListSortKeyToOrderString(
-		opts.Sort,
-		[]string{"id", "created_at", "updated_at"},
-		map[string][]string{
-			"type": {"folder", "table"},
-		})
+	order, err := convertGetListSortKeyToOrderString(opts.Sort, []string{"id", "type", "created_at", "updated_at"})
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to convert sort key: %w", err)
 	}

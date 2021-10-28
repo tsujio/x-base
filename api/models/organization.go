@@ -7,8 +7,6 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
-
-	"github.com/tsujio/x-base/api/utils/strings"
 )
 
 type Organization struct {
@@ -19,16 +17,21 @@ type Organization struct {
 }
 
 type GetOrganizationListOpts struct {
-	Sort          string
+	Sort          []GetListSortKey
 	Offset, Limit int
 }
 
 func GetOrganizationList(db *gorm.DB, opts *GetOrganizationListOpts) ([]Organization, int64, error) {
+	order, err := convertGetListSortKeyToOrderString(opts.Sort, []string{"id", "created_at", "updated_at"})
+	if err != nil {
+		return nil, 0, xerrors.Errorf("Failed to convert sort key: %w", err)
+	}
+
 	var organizations []Organization
 	var totalCount int64
-	err := db.Model(&Organization{}).
+	err = db.Model(&Organization{}).
 		Count(&totalCount).
-		Order(strings.ToSnakeCase(opts.Sort)).Offset(opts.Offset).Limit(opts.Limit).Find(&organizations).
+		Order(order).Offset(opts.Offset).Limit(opts.Limit).Find(&organizations).
 		Error
 	if err != nil {
 		return nil, 0, xerrors.Errorf("Failed to get models: %w", err)

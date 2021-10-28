@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/tsujio/x-base/api/utils/arrays"
@@ -15,23 +16,33 @@ type GetListSortKey struct {
 	OrderValues []string
 }
 
-func convertGetListSortKeyToOrderString(sortKeys []GetListSortKey, sortableKeys []string, categoricalKeys map[string][]string) (string, error) {
+var categoricalValuePattern = regexp.MustCompile(`^\w+$`)
+
+func convertGetListSortKeyToOrderString(sortKeys []GetListSortKey, sortableKeys []string) (string, error) {
 	if len(sortKeys) == 0 {
 		return "id ASC", nil
 	}
 
 	var orders []string
 	for _, s := range sortKeys {
-		key := utilstrings.ToSnakeCase(s.Key)
+		var key string
+		if strings.HasPrefix(s.Key, "property.") {
+			prop := s.Key[len("property."):]
+			if !propertiesKeyPattern.MatchString(prop) {
+				return "", fmt.Errorf("Invalid sort key: %s", s.Key)
+			}
+			key = fmt.Sprintf("JSON_EXTRACT(properties, '$.%s')", prop)
+		} else {
+			key = utilstrings.ToSnakeCase(s.Key)
+			if !arrays.StringSliceContains(sortableKeys, key) {
+				return "", fmt.Errorf("Invalid sort key: %s", s.Key)
+			}
+		}
 
 		if len(s.OrderValues) > 0 {
-			values, exists := categoricalKeys[key]
-			if !exists {
-				return "", fmt.Errorf("Invalid sort option (not a categorical key)")
-			}
 			var cases string
 			for i, v := range s.OrderValues {
-				if !arrays.StringSliceContains(values, v) {
+				if !categoricalValuePattern.MatchString(v) {
 					return "", fmt.Errorf("Invalid sort option (value list)")
 				}
 				cases += fmt.Sprintf(" WHEN %s = '%s' THEN %d ", key, v, i)
@@ -40,20 +51,15 @@ func convertGetListSortKeyToOrderString(sortKeys []GetListSortKey, sortableKeys 
 			continue
 		}
 
-		if arrays.StringSliceContains(sortableKeys, key) {
-			var o string
-			if s.OrderAsc {
-				o = "ASC"
-			} else if s.OrderDesc {
-				o = "DESC"
-			} else {
-				return "", fmt.Errorf("Invalid sort option (expected 'asc' or 'desc')")
-			}
-			orders = append(orders, fmt.Sprintf("%s %s", key, o))
-			continue
+		var o string
+		if s.OrderAsc {
+			o = "ASC"
+		} else if s.OrderDesc {
+			o = "DESC"
+		} else {
+			return "", fmt.Errorf("Invalid sort option (expected 'asc' or 'desc')")
 		}
-
-		return "", fmt.Errorf("Invalid sort key: %s", s.Key)
+		orders = append(orders, fmt.Sprintf("%s %s", key, o))
 	}
 
 	return strings.Join(orders, ", "), nil

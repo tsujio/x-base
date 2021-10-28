@@ -32,6 +32,7 @@ func TestGetOrganizationList(t *testing.T) {
 			Query: url.Values{
 				"page":     []string{"2"},
 				"pageSize": []string{"2"},
+				"sort":     []string{"createdAt:asc"},
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -189,6 +190,45 @@ func TestGetOrganizationList(t *testing.T) {
 					},
 				},
 				"totalCount": float64(1),
+			},
+		},
+		{
+			Title: "Sort by property",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: organization-01
+				    properties:
+				      key1: 1
+				  - id: organization-02
+				    properties:
+				      key1: 2
+				`)
+			},
+			Query: url.Values{
+				"sort": []string{"property.key1:desc"},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"organizations": []interface{}{
+					map[string]interface{}{
+						"id": testutils.GetUUID("organization-02"),
+						"properties": map[string]interface{}{
+							"key1": float64(2),
+						},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
+					},
+					map[string]interface{}{
+						"id": testutils.GetUUID("organization-01"),
+						"properties": map[string]interface{}{
+							"key1": float64(1),
+						},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
+					},
+				},
+				"totalCount": float64(2),
 			},
 		},
 	}

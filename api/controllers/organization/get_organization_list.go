@@ -28,6 +28,14 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 		return
 	}
 
+	// Decode sort key
+	var sortKeys []schemas.GetListSortKey
+	err = schemas.DecodeGetListSort(input.Sort, &sortKeys)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid sort parameter", err)
+		return
+	}
+
 	if input.Page == nil {
 		input.Page = &defaultPage
 	}
@@ -36,8 +44,13 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	}
 
 	// Fetch
+	var sortKeyOpt []models.GetListSortKey
+	if err := copier.Copy(&sortKeyOpt, &sortKeys); err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make query option", err)
+		return
+	}
 	opts := models.GetOrganizationListOpts{
-		Sort:   "CreatedAt ASC, ID ASC",
+		Sort:   sortKeyOpt,
 		Offset: (*input.Page - 1) * *input.PageSize,
 		Limit:  *input.PageSize,
 	}

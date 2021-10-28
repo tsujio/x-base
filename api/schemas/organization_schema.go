@@ -10,6 +10,7 @@ import (
 type GetOrganizationListInput struct {
 	PaginationInput
 	Properties string `schema:"properties"`
+	Sort       string `schema:"sort"`
 }
 
 type GetOrganizationInput struct {
