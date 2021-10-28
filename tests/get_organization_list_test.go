@@ -81,10 +81,9 @@ func TestGetOrganizationList(t *testing.T) {
 			Query: url.Values{
 				"pageSize": []string{"0"},
 			},
-			StatusCode: http.StatusOK,
+			StatusCode: http.StatusBadRequest,
 			Output: map[string]interface{}{
-				"organizations": []interface{}{},
-				"totalCount":    float64(1),
+				"message": testutils.Regexp{Pattern: `\bPageSize\b`},
 			},
 		},
 		{

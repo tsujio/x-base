@@ -98,7 +98,6 @@ func TestGetFolderChildren(t *testing.T) {
 					},
 				},
 				"totalCount": float64(3),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -153,7 +152,6 @@ func TestGetFolderChildren(t *testing.T) {
 					},
 				},
 				"totalCount": float64(2),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -206,7 +204,6 @@ func TestGetFolderChildren(t *testing.T) {
 					},
 				},
 				"totalCount": float64(2),
-				"hasNext":    true,
 			},
 		},
 		{
@@ -245,7 +242,6 @@ func TestGetFolderChildren(t *testing.T) {
 					},
 				},
 				"totalCount": float64(2),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -263,7 +259,6 @@ func TestGetFolderChildren(t *testing.T) {
 			Output: map[string]interface{}{
 				"children":   []interface{}{},
 				"totalCount": float64(0),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -282,7 +277,6 @@ func TestGetFolderChildren(t *testing.T) {
 			Output: map[string]interface{}{
 				"children":   []interface{}{},
 				"totalCount": float64(0),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -332,7 +326,6 @@ func TestGetFolderChildren(t *testing.T) {
 					},
 				},
 				"totalCount": float64(1),
-				"hasNext":    false,
 			},
 		},
 		{
