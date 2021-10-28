@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS table_filesystem_entries (
     organization_id BINARY(16) NOT NULL,
     type CHAR(16) NOT NULL,
     parent_folder_id BINARY(16),
+    properties JSON NOT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),

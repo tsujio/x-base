@@ -14,6 +14,7 @@ type TableFilesystemEntry struct {
 	Type           string
 	ParentFolderID *UUID
 	Path           []TableFilesystemPathEntry `gorm:"-"`
+	Properties     Properties
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

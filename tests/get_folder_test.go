@@ -36,12 +36,14 @@ func TestGetFolder(t *testing.T) {
 				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-01"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 		},
 		{

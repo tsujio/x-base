@@ -40,16 +40,19 @@ func TestUpdateFolder(t *testing.T) {
 				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-01"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-02"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-02"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -89,12 +92,14 @@ func TestUpdateFolder(t *testing.T) {
 				"type":           "folder",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-02"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-02"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response

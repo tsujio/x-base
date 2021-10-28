@@ -30,13 +30,15 @@ func TestCreateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.UUID{},
-						"type": "table",
+						"id":         testutils.UUID{},
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"columns":   []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"columns":    []interface{}{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
@@ -64,13 +66,15 @@ func TestCreateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.UUID{},
-						"type": "table",
+						"id":         testutils.UUID{},
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"columns":   []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"columns":    []interface{}{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
@@ -103,21 +107,25 @@ func TestCreateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-01"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-02"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-02"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 					map[string]interface{}{
-						"id":   testutils.UUID{},
-						"type": "table",
+						"id":         testutils.UUID{},
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"columns":   []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"columns":    []interface{}{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
@@ -185,8 +193,9 @@ func TestCreateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.UUID{},
-						"type": "table",
+						"id":         testutils.UUID{},
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
 				"columns": []interface{}{
@@ -205,8 +214,9 @@ func TestCreateTable(t *testing.T) {
 						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 		},
 	}

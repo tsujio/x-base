@@ -7,13 +7,15 @@ import (
 )
 
 type CreateTableInput struct {
-	OrganizationID uuid.UUID           `json:"organizationId" validate:"required"`
-	ParentFolderID *uuid.UUID          `json:"parentFolderId"`
-	Columns        []CreateColumnInput `json:"columns"`
+	OrganizationID uuid.UUID              `json:"organizationId" validate:"required"`
+	ParentFolderID *uuid.UUID             `json:"parentFolderId"`
+	Columns        []CreateColumnInput    `json:"columns"`
+	Properties     map[string]interface{} `json:"properties"`
 }
 
 type UpdateTableInput struct {
-	ParentFolderID *uuid.UUID `json:"parentFolderId"`
+	ParentFolderID *uuid.UUID             `json:"parentFolderId"`
+	Properties     map[string]interface{} `json:"properties"`
 }
 
 type Table struct {
@@ -27,6 +29,9 @@ func (t Table) MarshalJSON() ([]byte, error) {
 	}
 	if t.Path == nil {
 		t.Path = []TableFilesystemPathEntry{}
+	}
+	if t.Properties == nil {
+		t.Properties = make(map[string]interface{})
 	}
 	type Alias Table
 	return json.Marshal(&struct{ Alias }{Alias: (Alias)(t)})

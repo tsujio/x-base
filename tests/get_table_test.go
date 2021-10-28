@@ -40,8 +40,9 @@ func TestGetTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("table-01"),
-						"type": "table",
+						"id":         testutils.GetUUID("table-01"),
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
 				"columns": []interface{}{
@@ -53,8 +54,9 @@ func TestGetTable(t *testing.T) {
 						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 		},
 		{

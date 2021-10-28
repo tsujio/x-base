@@ -8,12 +8,14 @@ import (
 )
 
 type CreateFolderInput struct {
-	OrganizationID uuid.UUID  `json:"organizationId" validate:"required"`
-	ParentFolderID *uuid.UUID `json:"parentFolderId"`
+	OrganizationID uuid.UUID              `json:"organizationId" validate:"required"`
+	ParentFolderID *uuid.UUID             `json:"parentFolderId"`
+	Properties     map[string]interface{} `json:"properties"`
 }
 
 type UpdateFolderInput struct {
-	ParentFolderID *uuid.UUID `json:"parentFolderId"`
+	ParentFolderID *uuid.UUID             `json:"parentFolderId"`
+	Properties     map[string]interface{} `json:"properties"`
 }
 
 type GetFolderChildrenInput struct {
@@ -24,6 +26,17 @@ type GetFolderChildrenInput struct {
 
 type Folder struct {
 	TableFilesystemEntry
+}
+
+func (f Folder) MarshalJSON() ([]byte, error) {
+	if f.Path == nil {
+		f.Path = []TableFilesystemPathEntry{}
+	}
+	if f.Properties == nil {
+		f.Properties = make(map[string]interface{})
+	}
+	type Alias Folder
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(f)})
 }
 
 type FolderChildren struct {
@@ -45,6 +58,9 @@ func (c FolderChild) MarshalJSON() ([]byte, error) {
 	if c.Path == nil {
 		c.Path = []TableFilesystemPathEntry{}
 	}
+	if c.Properties == nil {
+		c.Properties = make(map[string]interface{})
+	}
 	type Alias FolderChild
 	return json.Marshal(&struct{ Alias }{Alias: (Alias)(c)})
 }
@@ -54,11 +70,21 @@ type TableFilesystemEntry struct {
 	OrganizationID uuid.UUID                  `json:"organizationId"`
 	Type           string                     `json:"type"`
 	Path           []TableFilesystemPathEntry `json:"path"`
+	Properties     map[string]interface{}     `json:"properties"`
 	CreatedAt      time.Time                  `json:"createdAt"`
 	UpdatedAt      time.Time                  `json:"updatedAt"`
 }
 
 type TableFilesystemPathEntry struct {
-	ID   uuid.UUID `json:"id"`
-	Type string    `json:"type"`
+	ID         uuid.UUID              `json:"id"`
+	Type       string                 `json:"type"`
+	Properties map[string]interface{} `json:"properties"`
+}
+
+func (e TableFilesystemPathEntry) MarshalJSON() ([]byte, error) {
+	if e.Properties == nil {
+		e.Properties = make(map[string]interface{})
+	}
+	type Alias TableFilesystemPathEntry
+	return json.Marshal(&struct{ Alias }{Alias: (Alias)(e)})
 }

@@ -40,17 +40,20 @@ func TestUpdateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("folder-01"),
-						"type": "folder",
+						"id":         testutils.GetUUID("folder-01"),
+						"type":       "folder",
+						"properties": map[string]interface{}{},
 					},
 					map[string]interface{}{
-						"id":   testutils.GetUUID("table-01"),
-						"type": "table",
+						"id":         testutils.GetUUID("table-01"),
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"columns":   []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"columns":    []interface{}{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -90,13 +93,15 @@ func TestUpdateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("table-01"),
-						"type": "table",
+						"id":         testutils.GetUUID("table-01"),
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
-				"columns":   []interface{}{},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"columns":    []interface{}{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -191,8 +196,9 @@ func TestUpdateTable(t *testing.T) {
 				"type":           "table",
 				"path": []interface{}{
 					map[string]interface{}{
-						"id":   testutils.GetUUID("table-01"),
-						"type": "table",
+						"id":         testutils.GetUUID("table-01"),
+						"type":       "table",
+						"properties": map[string]interface{}{},
 					},
 				},
 				"columns": []interface{}{
@@ -204,8 +210,9 @@ func TestUpdateTable(t *testing.T) {
 						"updatedAt": testutils.Timestamp{},
 					},
 				},
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 		},
 	}
