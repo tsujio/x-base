@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/tsujio/x-base/api/utils/strings"
 	"golang.org/x/xerrors"
 	"gorm.io/gorm"
 )
@@ -13,15 +12,8 @@ type Folder struct {
 	TableFilesystemEntry
 }
 
-type GetFolderChildrenSortKey struct {
-	Key         string
-	OrderAsc    bool
-	OrderDesc   bool
-	OrderValues []string
-}
-
 type GetFolderChildrenOpts struct {
-	Sort          []GetFolderChildrenSortKey
+	Sort          []GetListSortKey
 	Offset, Limit int
 	ComputePath   bool
 }
@@ -49,54 +41,19 @@ func (f *Folder) GetChildren(db *gorm.DB, opts *GetFolderChildrenOpts) ([]TableF
 		},
 	}
 
-	var order string
-	if len(opts.Sort) == 0 {
-		order = "id"
-	} else {
-		for i, s := range opts.Sort {
-			if i > 0 {
-				order += ", "
-			}
-			k := strings.ToSnakeCase(s.Key)
-			switch k {
-			case "id", "created_at", "updated_at":
-				var o string
-				if s.OrderAsc {
-					o = "ASC"
-				} else if s.OrderDesc {
-					o = "DESC"
-				} else {
-					return nil, 0, fmt.Errorf("Invalid sort option (expected 'asc' or 'desc')")
-				}
-				order += k + " " + o
-			case "type":
-				if len(s.OrderValues) == 0 {
-					return nil, 0, fmt.Errorf("Invalid sort option (empty value list)")
-				}
-				order += "CASE"
-				for i, v := range s.OrderValues {
-					var match bool
-					for _, t := range []string{"table", "folder"} {
-						if v == t {
-							match = true
-							break
-						}
-					}
-					if !match {
-						return nil, 0, fmt.Errorf("Invalid sort option (value list)")
-					}
-					order += fmt.Sprintf(" WHEN type = '%s' THEN %d", v, i)
-				}
-				order += fmt.Sprintf(" ELSE %d END ASC", len(s.OrderValues))
-			default:
-				return nil, 0, fmt.Errorf("Invalid sort key: %s", s.Key)
-			}
-		}
+	order, err := convertGetListSortKeyToOrderString(
+		opts.Sort,
+		[]string{"id", "created_at", "updated_at"},
+		map[string][]string{
+			"type": {"folder", "table"},
+		})
+	if err != nil {
+		return nil, 0, xerrors.Errorf("Failed to convert sort key: %w", err)
 	}
 
 	var children []TableFilesystemEntry
 	var totalCount int64
-	err := db.Model(&TableFilesystemEntry{}).Scopes(conds...).
+	err = db.Model(&TableFilesystemEntry{}).Scopes(conds...).
 		Count(&totalCount).
 		Order(order).Offset(opts.Offset).Limit(opts.Limit).Find(&children).
 		Error

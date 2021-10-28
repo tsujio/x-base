@@ -77,15 +77,11 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		folder = f
 	}
 
-	// Prepare get opts
-	var sortKeyOpt []models.GetFolderChildrenSortKey
-	for _, k := range sortKeys {
-		sortKeyOpt = append(sortKeyOpt, models.GetFolderChildrenSortKey{
-			Key:         k.Key,
-			OrderAsc:    k.OrderAsc,
-			OrderDesc:   k.OrderDesc,
-			OrderValues: k.OrderValues,
-		})
+	// Get children
+	var sortKeyOpt []models.GetListSortKey
+	if err := copier.Copy(&sortKeyOpt, &sortKeys); err != nil {
+		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make query option", err)
+		return
 	}
 	opts := models.GetFolderChildrenOpts{
 		Sort:        sortKeyOpt,
@@ -93,8 +89,6 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 		Limit:       *input.PageSize + 1,
 		ComputePath: true,
 	}
-
-	// Get children
 	children, totalCount, err := folder.GetChildren(controller.DB, &opts)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)
