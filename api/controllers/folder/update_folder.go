@@ -34,6 +34,10 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
 
 	// Fetch
 	folder, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetFolder(controller.DB)
@@ -79,6 +83,9 @@ func (controller *FolderController) UpdateFolder(w http.ResponseWriter, r *http.
 	// Update
 	if input.ParentFolderID != nil {
 		folder.ParentFolderID = (*models.UUID)(input.ParentFolderID)
+	}
+	for k, v := range input.Properties {
+		folder.Properties[k] = v
 	}
 	err = folder.Save(controller.DB)
 	if err != nil {

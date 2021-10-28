@@ -6,6 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type GetTableInput struct {
+	Properties       string `schema:"properties"`
+	ColumnProperties string `schema:"columnProperties"`
+}
+
 type CreateTableInput struct {
 	OrganizationID uuid.UUID              `json:"organizationId" validate:"required"`
 	ParentFolderID *uuid.UUID             `json:"parentFolderId"`

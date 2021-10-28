@@ -24,6 +24,16 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
+	for _, c := range input.Columns {
+		if result := models.ValidateProperties(c.Properties); result != "" {
+			responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+			return
+		}
+	}
 
 	// Check parent folder
 	if input.ParentFolderID != nil && *input.ParentFolderID != uuid.Nil {
@@ -50,6 +60,7 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 			TableFilesystemEntry: models.TableFilesystemEntry{
 				OrganizationID: models.UUID(input.OrganizationID),
 				ParentFolderID: (*models.UUID)(input.ParentFolderID),
+				Properties:     input.Properties,
 			},
 		}
 		err = t.Create(tx)
@@ -59,10 +70,11 @@ func (controller *TableController) CreateTable(w http.ResponseWriter, r *http.Re
 
 		// Create columns
 		if len(input.Columns) > 0 {
-			for i := range input.Columns {
+			for i, c := range input.Columns {
 				col := &models.Column{
-					TableID: t.ID,
-					Index:   i,
+					TableID:    t.ID,
+					Index:      i,
+					Properties: c.Properties,
 				}
 				err := col.Create(tx, true)
 				if err != nil {

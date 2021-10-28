@@ -183,6 +183,71 @@ func TestUpdateFolder(t *testing.T) {
 				"message": "Cannot move to sub folder",
 			},
 		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: folder-01
+				        properties:
+				          key1: value1
+				          key2: value2
+				          key3: value3
+				`)
+			},
+			Path: makePath(testutils.GetUUID("folder-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"key1": "new-key",
+					"key2": nil,
+					"key4": "value4",
+				},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":             testutils.GetUUID("folder-01"),
+				"organizationId": testutils.GetUUID("org1"),
+				"type":           "folder",
+				"path":           []interface{}{},
+				"properties": map[string]interface{}{
+					"key1": "new-key",
+					"key3": "value3",
+					"key4": "value4",
+				},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Reacquire and compare with the previous response
+				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
+				if diff := testutils.CompareJson(output, res); diff != "" {
+					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Invalid property key",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: folder-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("folder-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"prop key": "value1",
+				},
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `Invalid property key`},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

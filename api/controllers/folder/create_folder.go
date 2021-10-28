@@ -24,6 +24,10 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
 
 	// Check parent folder
 	if input.ParentFolderID != nil && *input.ParentFolderID != uuid.Nil {
@@ -48,6 +52,7 @@ func (controller *FolderController) CreateFolder(w http.ResponseWriter, r *http.
 		TableFilesystemEntry: models.TableFilesystemEntry{
 			OrganizationID: models.UUID(input.OrganizationID),
 			ParentFolderID: (*models.UUID)(input.ParentFolderID),
+			Properties:     input.Properties,
 		},
 	}
 	err = f.Create(controller.DB)

@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS columns (
     id BINARY(16) NOT NULL,
     table_id BINARY(16) NOT NULL,
     `index` INT UNSIGNED NOT NULL,
+    properties JSON NOT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),

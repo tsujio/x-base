@@ -151,6 +151,58 @@ func TestCreateFolder(t *testing.T) {
 				"message": "Cannot create folder as a child of another organization's folder",
 			},
 		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Body: map[string]interface{}{
+				"organizationId": testutils.GetUUID("org1"),
+				"properties": map[string]interface{}{
+					"key1": "value1",
+				},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":             testutils.UUID{},
+				"organizationId": testutils.GetUUID("org1"),
+				"type":           "folder",
+				"path":           []interface{}{},
+				"properties": map[string]interface{}{
+					"key1": "value1",
+				},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				res := testutils.ServeGet(router, fmt.Sprintf("/folders/%s", output["id"]), nil)
+				if diff := testutils.CompareJson(output, res); diff != "" {
+					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Invalid property key",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				`)
+			},
+			Body: map[string]interface{}{
+				"organizationId": testutils.GetUUID("org1"),
+				"properties": map[string]interface{}{
+					"prop key": "value1",
+				},
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `Invalid property key`},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

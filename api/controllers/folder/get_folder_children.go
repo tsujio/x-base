@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -100,6 +101,15 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	var c []schemas.FolderChild
 	if err := copier.Copy(&c, &children); err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
+	}
+	if input.Properties != "" {
+		keys := strings.Split(input.Properties, ",")
+		for i := range c {
+			c[i].Properties = children[i].Properties.SelectKeys(keys)
+			for j := range c[i].Path {
+				c[i].Path[j].Properties = children[i].Path[j].Properties.SelectKeys(keys)
+			}
+		}
 	}
 	output.Children = c
 	output.TotalCount = totalCount

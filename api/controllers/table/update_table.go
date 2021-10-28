@@ -34,6 +34,10 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
 
 	// Fetch
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(id)}).GetTable(controller.DB)
@@ -67,6 +71,9 @@ func (controller *TableController) UpdateTable(w http.ResponseWriter, r *http.Re
 	// Update
 	if input.ParentFolderID != nil {
 		table.ParentFolderID = (*models.UUID)(input.ParentFolderID)
+	}
+	for k, v := range input.Properties {
+		table.Properties[k] = v
 	}
 	err = table.Save(controller.DB)
 	if err != nil {

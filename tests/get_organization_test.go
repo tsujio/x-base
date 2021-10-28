@@ -50,7 +50,7 @@ func TestGetOrganization(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"properties": []string{"key1,key2"},
+				"properties": []string{"key1,key2,key4"},
 			},
 			Path:       makePath(testutils.GetUUID("organization-01")),
 			StatusCode: http.StatusOK,
@@ -59,6 +59,7 @@ func TestGetOrganization(t *testing.T) {
 				"properties": map[string]interface{}{
 					"key1": "value1",
 					"key2": "value2",
+					"key4": nil,
 				},
 				"createdAt": testutils.Timestamp{},
 				"updatedAt": testutils.Timestamp{},

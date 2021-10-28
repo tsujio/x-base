@@ -186,16 +186,83 @@ func TestUpdateTable(t *testing.T) {
 				"path":           []interface{}{},
 				"columns": []interface{}{
 					map[string]interface{}{
-						"id":        testutils.GetUUID("column-01"),
-						"tableId":   testutils.GetUUID("table-01"),
-						"index":     float64(0),
-						"createdAt": testutils.Timestamp{},
-						"updatedAt": testutils.Timestamp{},
+						"id":         testutils.GetUUID("column-01"),
+						"tableId":    testutils.GetUUID("table-01"),
+						"index":      float64(0),
+						"properties": map[string]interface{}{},
+						"createdAt":  testutils.Timestamp{},
+						"updatedAt":  testutils.Timestamp{},
 					},
 				},
 				"properties": map[string]interface{}{},
 				"createdAt":  testutils.Timestamp{},
 				"updatedAt":  testutils.Timestamp{},
+			},
+		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        properties:
+				          key1: value1
+				          key2: value2
+				          key3: value3
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"key1": "new-key",
+					"key2": nil,
+					"key4": "value4",
+				},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":             testutils.GetUUID("table-01"),
+				"organizationId": testutils.GetUUID("org1"),
+				"type":           "table",
+				"path":           []interface{}{},
+				"columns":        []interface{}{},
+				"properties": map[string]interface{}{
+					"key1": "new-key",
+					"key3": "value3",
+					"key4": "value4",
+				},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
+			},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Reacquire and compare with the previous response
+				res := testutils.ServeGet(router, fmt.Sprintf("/tables/%s", output["id"]), nil)
+				if diff := testutils.CompareJson(output, res); diff != "" {
+					t.Errorf("[%s] Reacquired response mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Invalid property key",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"prop key": "value1",
+				},
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `Invalid property key`},
 			},
 		},
 	}

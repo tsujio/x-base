@@ -187,6 +187,15 @@ func makeTableFilesystemEntry(entry map[string]interface{}, path string, organiz
 		e.ParentFolderID = (*models.UUID)(&parentFolderID)
 	}
 
+	// Properties
+	if properties, exists := entry["properties"]; exists {
+		if props, ok := properties.(map[string]interface{}); !ok {
+			return nil, fmt.Errorf("Invalid type: path=%s, type=%T", path+".properties", properties)
+		} else {
+			e.Properties = props
+		}
+	}
+
 	// CreatedAt
 	if createdAt, exists := entry["createdAt"]; exists {
 		if createdAtStr, ok := createdAt.(string); !ok {
@@ -287,6 +296,15 @@ func createColumn(column interface{}, path string, table models.Table, index int
 
 		// Index
 		c.Index = index
+
+		// Properties
+		if properties, exists := col["properties"]; exists {
+			if props, ok := properties.(map[string]interface{}); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".properties", properties)
+			} else {
+				c.Properties = props
+			}
+		}
 
 		if err := c.Create(GetDB(), false); err != nil {
 			return err

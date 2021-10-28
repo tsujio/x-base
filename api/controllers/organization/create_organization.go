@@ -21,12 +21,12 @@ func (controller *OrganizationController) CreateOrganization(w http.ResponseWrit
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-
-	// Create organization
 	if result := models.ValidateProperties(input.Properties); result != "" {
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
 		return
 	}
+
+	// Create organization
 	o := models.Organization{
 		Properties: input.Properties,
 	}

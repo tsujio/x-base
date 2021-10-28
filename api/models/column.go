@@ -12,11 +12,12 @@ import (
 const ColumnTailIndex = 9999
 
 type Column struct {
-	ID        UUID
-	TableID   UUID
-	Index     int
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         UUID
+	TableID    UUID
+	Index      int
+	Properties Properties
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func moveColumnIndicesToTemporaryAddress(db *gorm.DB, tableID UUID) error {

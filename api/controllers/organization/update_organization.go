@@ -34,6 +34,10 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
 
 	// Fetch
 	organization, err := (&models.Organization{ID: models.UUID(id)}).Get(controller.DB)
@@ -47,10 +51,6 @@ func (controller *OrganizationController) UpdateOrganization(w http.ResponseWrit
 	}
 
 	// Update
-	if result := models.ValidateProperties(input.Properties); result != "" {
-		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
-		return
-	}
 	for k, v := range input.Properties {
 		organization.Properties[k] = v
 	}

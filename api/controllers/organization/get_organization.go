@@ -55,13 +55,8 @@ func (controller *OrganizationController) GetOrganization(w http.ResponseWriter,
 		return
 	}
 	if input.Properties != "" {
-		props := make(map[string]interface{})
-		for _, k := range strings.Split(input.Properties, ",") {
-			if v, exists := output.Properties[k]; exists {
-				props[k] = v
-			}
-		}
-		output.Properties = props
+		keys := strings.Split(input.Properties, ",")
+		output.Properties = organization.Properties.SelectKeys(keys)
 	}
 
 	// Send response

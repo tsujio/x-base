@@ -174,7 +174,7 @@ func TestGetOrganizationList(t *testing.T) {
 				`)
 			},
 			Query: url.Values{
-				"properties": []string{"key1,key2"},
+				"properties": []string{"key1,key2,key4"},
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
@@ -184,6 +184,7 @@ func TestGetOrganizationList(t *testing.T) {
 						"properties": map[string]interface{}{
 							"key1": "value1",
 							"key2": "value2",
+							"key4": nil,
 						},
 						"createdAt": testutils.Timestamp{},
 						"updatedAt": testutils.Timestamp{},

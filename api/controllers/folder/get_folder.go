@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -24,6 +25,14 @@ func (controller *FolderController) GetFolder(w http.ResponseWriter, r *http.Req
 	err := schemas.DecodeUUID(vars, "folderID", &id)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid folder id", err)
+		return
+	}
+
+	// Decode request parameters
+	var input schemas.GetFolderInput
+	err = schemas.DecodeQuery(r.URL.Query(), &input)
+	if err != nil {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request parameter", err)
 		return
 	}
 
@@ -49,6 +58,13 @@ func (controller *FolderController) GetFolder(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to make output data", err)
 		return
+	}
+	if input.Properties != "" {
+		keys := strings.Split(input.Properties, ",")
+		output.Properties = folder.Properties.SelectKeys(keys)
+		for i := range output.Path {
+			output.Path[i].Properties = folder.Path[i].Properties.SelectKeys(keys)
+		}
 	}
 
 	// Send response

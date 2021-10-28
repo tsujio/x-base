@@ -68,15 +68,9 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 		return
 	}
 	if input.Properties != "" {
+		keys := strings.Split(input.Properties, ",")
 		for i := range output.Organizations {
-			o := &output.Organizations[i]
-			props := make(map[string]interface{})
-			for _, k := range strings.Split(input.Properties, ",") {
-				if v, exists := o.Properties[k]; exists {
-					props[k] = v
-				}
-			}
-			o.Properties = props
+			output.Organizations[i].Properties = organizations[i].Properties.SelectKeys(keys)
 		}
 	}
 	output.TotalCount = totalCount

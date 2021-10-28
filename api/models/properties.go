@@ -20,6 +20,18 @@ func ValidateProperties(p map[string]interface{}) string {
 	return ""
 }
 
+func (p Properties) SelectKeys(keys []string) Properties {
+	props := make(map[string]interface{})
+	for _, k := range keys {
+		if v, exists := p[k]; exists {
+			props[k] = v
+		} else {
+			props[k] = nil
+		}
+	}
+	return props
+}
+
 func (p *Properties) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {

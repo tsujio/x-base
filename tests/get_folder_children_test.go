@@ -322,6 +322,79 @@ func TestGetFolderChildren(t *testing.T) {
 				"message": testutils.Regexp{Pattern: `\bPageSize\b`},
 			},
 		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: folder
+				        properties:
+				          key1: value
+				          key2: 0
+				        children:
+				          - id: table-01
+				            properties:
+				              key1: value1
+				              key2: 1
+				          - id: folder-01
+				            properties:
+				              key1: value2
+				              key2: 2
+				`)
+			},
+			Query: url.Values{
+				"organizationId": []string{testutils.GetUUID("org1").String()},
+				"properties":     []string{"key1"},
+				"sort":           []string{"property.key2:desc"},
+			},
+			Path:       makePath(testutils.GetUUID("folder")),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"children": []interface{}{
+					map[string]interface{}{
+						"id":             testutils.GetUUID("folder-01"),
+						"organizationId": testutils.GetUUID("org1"),
+						"type":           "folder",
+						"path": []interface{}{
+							map[string]interface{}{
+								"id":   testutils.GetUUID("folder"),
+								"type": "folder",
+								"properties": map[string]interface{}{
+									"key1": "value",
+								},
+							},
+						},
+						"properties": map[string]interface{}{
+							"key1": "value2",
+						},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
+					},
+					map[string]interface{}{
+						"id":             testutils.GetUUID("table-01"),
+						"organizationId": testutils.GetUUID("org1"),
+						"type":           "table",
+						"path": []interface{}{
+							map[string]interface{}{
+								"id":   testutils.GetUUID("folder"),
+								"type": "folder",
+								"properties": map[string]interface{}{
+									"key1": "value",
+								},
+							},
+						},
+						"properties": map[string]interface{}{
+							"key1": "value1",
+						},
+						"createdAt": testutils.Timestamp{},
+						"updatedAt": testutils.Timestamp{},
+					},
+				},
+				"totalCount": float64(2),
+			},
+		},
 	}
 
 	for _, tc := range testCases {

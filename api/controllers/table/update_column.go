@@ -39,6 +39,10 @@ func (controller *TableController) UpdateColumn(w http.ResponseWriter, r *http.R
 		responses.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+	if result := models.ValidateProperties(input.Properties); result != "" {
+		responses.SendErrorResponse(w, r, http.StatusBadRequest, result, nil)
+		return
+	}
 
 	// Fetch table
 	table, err := (&models.TableFilesystemEntry{ID: models.UUID(tableID)}).GetTable(controller.DB)
@@ -73,6 +77,9 @@ func (controller *TableController) UpdateColumn(w http.ResponseWriter, r *http.R
 	// Update
 	if input.Index != nil {
 		column.Index = *input.Index
+	}
+	for k, v := range input.Properties {
+		column.Properties[k] = v
 	}
 	err = controller.DB.Transaction(func(tx *gorm.DB) error {
 		return column.Save(tx, false)

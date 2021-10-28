@@ -7,6 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type GetFolderInput struct {
+	Properties string `schema:"properties"`
+}
+
 type CreateFolderInput struct {
 	OrganizationID uuid.UUID              `json:"organizationId" validate:"required"`
 	ParentFolderID *uuid.UUID             `json:"parentFolderId"`
@@ -21,6 +25,7 @@ type UpdateFolderInput struct {
 type GetFolderChildrenInput struct {
 	PaginationInput
 	OrganizationID uuid.UUID `schema:"organizationId"`
+	Properties     string    `schema:"properties"`
 	Sort           string    `schema:"sort"`
 }
 

@@ -44,11 +44,12 @@ func TestCreateColumn(t *testing.T) {
 			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":        testutils.UUID{},
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":     float64(0),
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"id":         testutils.UUID{},
+				"tableId":    testutils.GetUUID("table-01"),
+				"index":      float64(0),
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -79,11 +80,12 @@ func TestCreateColumn(t *testing.T) {
 			Body:       map[string]interface{}{},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":        testutils.UUID{},
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":     float64(1),
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"id":         testutils.UUID{},
+				"tableId":    testutils.GetUUID("table-01"),
+				"index":      float64(1),
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -117,11 +119,12 @@ func TestCreateColumn(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":        testutils.UUID{},
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":     float64(0),
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"id":         testutils.UUID{},
+				"tableId":    testutils.GetUUID("table-01"),
+				"index":      float64(0),
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -174,11 +177,12 @@ func TestCreateColumn(t *testing.T) {
 			},
 			StatusCode: http.StatusOK,
 			Output: map[string]interface{}{
-				"id":        testutils.UUID{},
-				"tableId":   testutils.GetUUID("table-01"),
-				"index":     float64(1),
-				"createdAt": testutils.Timestamp{},
-				"updatedAt": testutils.Timestamp{},
+				"id":         testutils.UUID{},
+				"tableId":    testutils.GetUUID("table-01"),
+				"index":      float64(1),
+				"properties": map[string]interface{}{},
+				"createdAt":  testutils.Timestamp{},
+				"updatedAt":  testutils.Timestamp{},
 			},
 			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
 				// Reacquire and compare with the previous response
@@ -228,6 +232,55 @@ func TestCreateColumn(t *testing.T) {
 			StatusCode: http.StatusNotFound,
 			Output: map[string]interface{}{
 				"message": "Table not found",
+			},
+		},
+		{
+			Title: "Properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"key1": "value1",
+				},
+			},
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"id":      testutils.UUID{},
+				"tableId": testutils.GetUUID("table-01"),
+				"index":   float64(0),
+				"properties": map[string]interface{}{
+					"key1": "value1",
+				},
+				"createdAt": testutils.Timestamp{},
+				"updatedAt": testutils.Timestamp{},
+			},
+		},
+		{
+			Title: "Invalid property key",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: map[string]interface{}{
+				"properties": map[string]interface{}{
+					"prop key": "value1",
+				},
+			},
+			StatusCode: http.StatusBadRequest,
+			Output: map[string]interface{}{
+				"message": testutils.Regexp{Pattern: `Invalid property key`},
 			},
 		},
 	}
