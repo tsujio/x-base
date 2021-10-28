@@ -355,6 +355,15 @@ func createTableRecord(record interface{}, path string, table models.Table) erro
 			}
 		}
 
+		// Properties
+		if properties, exists := rcd["properties"]; exists {
+			if props, ok := properties.(map[string]interface{}); !ok {
+				return fmt.Errorf("Invalid type: path=%s, type=%T", path+".properties", properties)
+			} else {
+				r.Properties = props
+			}
+		}
+
 		// CreatedAt
 		if createdAt, exists := rcd["createdAt"]; exists {
 			if createdAtStr, ok := createdAt.(string); !ok {

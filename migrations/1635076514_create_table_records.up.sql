@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS table_records (
     id_string CHAR(36) AS (BIN_TO_UUID(id)) STORED NOT NULL,
     table_id BINARY(16) NOT NULL,
     data JSON NOT NULL,
+    properties JSON NOT NULL,
     created_at DATETIME NOT NULL,
     updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),

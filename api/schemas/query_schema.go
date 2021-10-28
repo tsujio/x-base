@@ -31,7 +31,7 @@ func DecodeQueryTableRecordInput(sourcce io.Reader) (interface{}, error) {
 }
 
 type InsertQuery struct {
-	Columns []ColumnExpr
+	Columns []interface{}
 	Values  [][]ValueExpr
 }
 
@@ -54,6 +54,10 @@ type DeleteQuery struct {
 
 type MetadataExpr struct {
 	Metadata string
+}
+
+type PropertyExpr struct {
+	Key string
 }
 
 type ColumnExpr struct {
@@ -102,7 +106,7 @@ type SortKey struct {
 }
 
 type UpdateSet struct {
-	To    ColumnExpr
+	To    interface{}
 	Value interface{}
 }
 
@@ -124,11 +128,13 @@ func DecodeInsertQuery(input interface{}, path string) (*InsertQuery, error) {
 		return nil, fmt.Errorf("Invalid type: expected=array, got=%T, path=%s.columns", columns, path)
 	}
 	for i, c := range cols {
-		expr, err := DecodeColumnExpr(c, fmt.Sprintf("%s.columns[%d]", path, i))
-		if err != nil {
-			return nil, err
+		if expr, err := DecodeColumnExpr(c, fmt.Sprintf("%s.columns[%d]", path, i)); err == nil {
+			query.Columns = append(query.Columns, *expr)
+		} else if expr, err := DecodePropertyExpr(c, fmt.Sprintf("%s.columns[%d]", path, i)); err == nil {
+			query.Columns = append(query.Columns, *expr)
+		} else {
+			return nil, fmt.Errorf("Did not match insert column schema: path=%s.columns[%d]", path, i)
 		}
-		query.Columns = append(query.Columns, *expr)
 	}
 
 	// values
@@ -315,6 +321,9 @@ func DecodeExpr(input interface{}, path string) (interface{}, error) {
 	if e, err := DecodeMetadataExpr(input, path); err == nil {
 		return e, nil
 	}
+	if e, err := DecodePropertyExpr(input, path); err == nil {
+		return e, nil
+	}
 	if e, err := DecodeColumnExpr(input, path); err == nil {
 		return e, nil
 	}
@@ -391,18 +400,36 @@ func DecodeMetadataExpr(input interface{}, path string) (*MetadataExpr, error) {
 	if !exists {
 		return nil, fmt.Errorf(".metadata required: path=%s", path)
 	}
-	d, ok := metadata.(string)
+	m, ok := metadata.(string)
 	if !ok {
 		return nil, fmt.Errorf("Invalid type: expected=string, got=%T, path=%s.metadata", metadata, path)
 	}
-	for _, key := range []string{"id", "createdAt"} {
-		if key == d {
-			expr.Metadata = d
-		}
-	}
-	if expr.Metadata == "" {
+	if !arrays.StringSliceContains([]string{"id", "createdAt"}, m) {
 		return nil, fmt.Errorf("Invalid value: path=%s.metadata", path)
 	}
+	expr.Metadata = m
+
+	return &expr, nil
+}
+
+func DecodePropertyExpr(input interface{}, path string) (*PropertyExpr, error) {
+	in, ok := input.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=object, got=%T, path=%s", input, path)
+	}
+
+	var expr PropertyExpr
+
+	// property
+	property, exists := in["property"]
+	if !exists {
+		return nil, fmt.Errorf(".property required: path=%s", path)
+	}
+	p, ok := property.(string)
+	if !ok {
+		return nil, fmt.Errorf("Invalid type: expected=string, got=%T, path=%s.property", property, path)
+	}
+	expr.Key = p
 
 	return &expr, nil
 }
@@ -733,11 +760,13 @@ func DecodeUpdateSet(input interface{}, path string) (*UpdateSet, error) {
 	if !exists {
 		return nil, fmt.Errorf(".to required: path=%s", path)
 	}
-	c, err := DecodeColumnExpr(to, fmt.Sprintf("%s.to", path))
-	if err != nil {
-		return nil, err
+	if t, err := DecodeColumnExpr(to, fmt.Sprintf("%s.to", path)); err == nil {
+		expr.To = *t
+	} else if t, err := DecodePropertyExpr(to, fmt.Sprintf("%s.to", path)); err == nil {
+		expr.To = *t
+	} else {
+		return nil, fmt.Errorf("Did not match update set schema: path=%s.to", path)
 	}
-	expr.To = *c
 
 	// value
 	value, exists := in["value"]

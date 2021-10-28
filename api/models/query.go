@@ -14,11 +14,12 @@ import (
 )
 
 type TableRecord struct {
-	ID        UUID
-	TableID   UUID
-	Data      JSON
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         UUID
+	TableID    UUID
+	Data       JSON
+	Properties Properties
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type SQLBuilder interface {
@@ -27,12 +28,12 @@ type SQLBuilder interface {
 
 type InsertQuery struct {
 	TableID UUID
-	Columns []ColumnExpr
+	Columns []interface{}
 	Values  [][]ValueExpr
 }
 
 func (q *InsertQuery) Execute(db *gorm.DB) ([]UUID, error) {
-	sql := `INSERT INTO table_records(id, table_id, data, created_at, updated_at)`
+	sql := `INSERT INTO table_records(id, table_id, data, properties, created_at, updated_at)`
 
 	now := time.Now().UTC().Truncate(time.Second)
 
@@ -47,20 +48,36 @@ func (q *InsertQuery) Execute(db *gorm.DB) ([]UUID, error) {
 		id := UUID(uuid)
 		ids = append(ids, id)
 
-		data := map[string]interface{}{}
-		for j, v := range record {
-			data[q.Columns[j].Column.ID.String()] = v.Value
+		data := make(map[string]interface{})
+		properties := make(map[string]interface{})
+		for j, c := range q.Columns {
+			switch col := c.(type) {
+			case ColumnExpr:
+				data[col.Column.ID.String()] = record[j].Value
+			case PropertyExpr:
+				if !PropertiesKeyPattern.MatchString(col.Key) {
+					return nil, fmt.Errorf("Invalid property key: %s", col.Key)
+				}
+				properties[col.Key] = record[j].Value
+			default:
+				return nil, fmt.Errorf("Invalid column type: %T", c)
+			}
 		}
+
 		dataJSON, err := json.Marshal(data)
 		if err != nil {
 			return nil, xerrors.Errorf("Failed to serialize data: %w", err)
+		}
+		propertiesJSON, err := json.Marshal(properties)
+		if err != nil {
+			return nil, xerrors.Errorf("Failed to serialize properties: %w", err)
 		}
 
 		if i > 0 {
 			sql += `,`
 		}
-		sql += ` (?, ?, ?, ?, ?)`
-		params = append(params, id, q.TableID, dataJSON, now, now)
+		sql += ` (?, ?, ?, ?, ?, ?)`
+		params = append(params, id, q.TableID, dataJSON, propertiesJSON, now, now)
 	}
 
 	if err := db.Exec(sql, params...).Error; err != nil {
@@ -184,22 +201,55 @@ func (q *UpdateQuery) Execute(db *gorm.DB) error {
 
 	switch t := q.Table.(type) {
 	case TableExpr:
-		sql += " table_records SET data = JSON_SET(data, "
+		sql += " table_records "
 
-		for i, us := range q.Set {
-			if i > 0 {
-				sql += `,`
+		data := make(map[string]SQLBuilder)
+		properties := make(map[string]SQLBuilder)
+		for _, us := range q.Set {
+			switch to := us.To.(type) {
+			case ColumnExpr:
+				data[to.Column.ID.String()] = us.Value
+			case PropertyExpr:
+				if !PropertiesKeyPattern.MatchString(to.Key) {
+					return fmt.Errorf("Invalid property key: %s", to.Key)
+				}
+				properties[to.Key] = us.Value
+			default:
+				return fmt.Errorf("Invalid set to type: %T", us.To)
 			}
-
-			s, p, err := us.Value.BuildSQL()
-			if err != nil {
-				return xerrors.Errorf("Failed to build value sql: %w", err)
-			}
-
-			sql += fmt.Sprintf(`'$."%s"', %s`, us.To.Column.ID, s)
-			params = append(params, p...)
 		}
-		sql += ")"
+
+		if len(data) > 0 {
+			sql += " SET data = JSON_SET(data"
+			for k, v := range data {
+				sql += `, `
+				s, p, err := v.BuildSQL()
+				if err != nil {
+					return xerrors.Errorf("Failed to build value sql: %w", err)
+				}
+				sql += fmt.Sprintf(`'$."%s"', %s`, k, s)
+				params = append(params, p...)
+			}
+			sql += ")"
+		}
+		if len(properties) > 0 {
+			if len(data) > 0 {
+				sql += ", "
+			} else {
+				sql += " SET "
+			}
+			sql += "properties = JSON_SET(properties"
+			for k, v := range properties {
+				sql += `, `
+				s, p, err := v.BuildSQL()
+				if err != nil {
+					return xerrors.Errorf("Failed to build value sql: %w", err)
+				}
+				sql += fmt.Sprintf(`'$."%s"', %s`, k, s)
+				params = append(params, p...)
+			}
+			sql += ")"
+		}
 
 		sql += `
 		WHERE table_id = ?
@@ -279,6 +329,23 @@ func (e MetadataExpr) BuildSQL() (string, []interface{}, error) {
 	default:
 		return "", nil, fmt.Errorf("Invalid metadata key: %v", e.Key)
 	}
+}
+
+type PropertyExpr struct {
+	Key string
+}
+
+func (e PropertyExpr) BuildSQL() (string, []interface{}, error) {
+	if !PropertiesKeyPattern.MatchString(e.Key) {
+		return "", nil, fmt.Errorf("Invalid property key: %s", e.Key)
+	}
+	sql := fmt.Sprintf(`
+	CAST(CASE WHEN JSON_EXTRACT(properties, '$."%s"') IS NULL OR JSON_TYPE(JSON_EXTRACT(properties, '$."%s"')) = 'NULL' THEN NULL
+	          ELSE JSON_EXTRACT(properties, '$."%s"')
+	     END AS JSON)
+	`, e.Key, e.Key, e.Key)
+
+	return sql, nil, nil
 }
 
 type ColumnExpr struct {
@@ -593,6 +660,6 @@ func (k SortKey) BuildSQL() (string, []interface{}, error) {
 }
 
 type UpdateSet struct {
-	To    ColumnExpr
+	To    interface{}
 	Value SQLBuilder
 }

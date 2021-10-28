@@ -98,22 +98,26 @@ func TestQueryTableRecordInsert(t *testing.T) {
 			    - column: {{ .column03 }}
 			    - column: {{ .column04 }}
 			    - column: {{ .column05 }}
+			    - property: key1
 			  values:
 			    - - value: v1-1
 			      - value: 0
 			      - value: 3.14
 			      - value: true
 			      - value: 1
+			      - value: [1, 2, 3]
 			    - - value: v2-1
 			      - value: 1
 			      - value: 2.71
 			      - value: false
 			      - value: 2
+			      - value: {key: value}
 			    - - value: null
 			      - value: null
 			      - value: null
 			      - value: null
 			      - value: 3
+			      - value: [{k: v1}, {k: v2}]
 			`, map[string]interface{}{
 				"column01": testutils.GetUUID("column-01"),
 				"column02": testutils.GetUUID("column-02"),
@@ -133,7 +137,14 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				// Select from the table
 				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
 				select:
-				  columns: [{metadata: id}, {column: {{ .column01 }} }, {column: {{ .column02 }} }, {column: {{ .column03 }} }, {column: {{ .column04 }} }]
+				  columns:
+				    - metadata: id
+				    - column: {{ .column01 }}
+				    - column: {{ .column02 }}
+				    - column: {{ .column03 }}
+				    - column: {{ .column04 }}
+				    - property: key1
+				    - property: key2
 				  orderBy: [{key: {column: {{ .column05 }} }}]
 				`, map[string]interface{}{
 					"column01": testutils.GetUUID("column-01"),
@@ -144,9 +155,42 @@ func TestQueryTableRecordInsert(t *testing.T) {
 				}))
 				if diff := testutils.CompareJson(map[string]interface{}{
 					"records": []interface{}{
-						[]interface{}{output["recordIds"].([]interface{})[0], "v1-1", float64(0), float64(3.14), true},
-						[]interface{}{output["recordIds"].([]interface{})[1], "v2-1", float64(1), float64(2.71), false},
-						[]interface{}{output["recordIds"].([]interface{})[2], nil, nil, nil, nil},
+						[]interface{}{
+							output["recordIds"].([]interface{})[0],
+							"v1-1",
+							float64(0),
+							float64(3.14),
+							true,
+							[]interface{}{float64(1), float64(2), float64(3)},
+							nil,
+						},
+						[]interface{}{
+							output["recordIds"].([]interface{})[1],
+							"v2-1",
+							float64(1),
+							float64(2.71),
+							false,
+							map[string]interface{}{
+								"key": "value",
+							},
+							nil,
+						},
+						[]interface{}{
+							output["recordIds"].([]interface{})[2],
+							nil,
+							nil,
+							nil,
+							nil,
+							[]interface{}{
+								map[string]interface{}{
+									"k": "v1",
+								},
+								map[string]interface{}{
+									"k": "v2",
+								},
+							},
+							nil,
+						},
 					},
 					"limit": float64(10),
 				}, res); diff != "" {
@@ -275,6 +319,36 @@ func TestQueryTableRecordSelect(t *testing.T) {
 			Output: map[string]interface{}{
 				"records": []interface{}{
 					[]interface{}{testutils.GetUUID("record-01"), "2021-10-01T00:00:00Z"},
+				},
+				"limit": float64(10),
+			},
+		},
+		{
+			Title: "Select property",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				            properties:
+				              key: value
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			select:
+			  columns: [{property: key}, {property: key2}]
+			`, nil),
+			StatusCode: http.StatusOK,
+			Output: map[string]interface{}{
+				"records": []interface{}{
+					[]interface{}{"value", nil},
 				},
 				"limit": float64(10),
 			},
@@ -588,6 +662,60 @@ func TestQueryTableRecordUpdate(t *testing.T) {
 					"records": []interface{}{
 						[]interface{}{float64(2), float64(2.71), "v2"},
 						[]interface{}{float64(3), float64(1.41), "v1"},
+					},
+					"limit": float64(10),
+				}, res); diff != "" {
+					t.Errorf("[%s] Selected records mismatch:\n%s", tc.Title, diff)
+				}
+			},
+		},
+		{
+			Title: "Update properties",
+			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
+				return testutils.LoadFixture(`
+				organizations:
+				  - id: org1
+				    tables:
+				      - id: table-01
+				        columns:
+				          - id: column-01
+				            type: integer
+				        records:
+				          - data: [1]
+				            properties:
+				              key1: value1
+				          - data: [2]
+				            properties:
+				              key1: value2
+				`)
+			},
+			Path: makePath(testutils.GetUUID("table-01")),
+			Body: makeJSON(`
+			update:
+			  set:
+			    - to: {property: key1}
+			      value: {value: new-value}
+			    - to: {property: key2}
+			      value: {value: 3.14}
+			  where: {eq: [{column: {{ .column01 }} }, {value: 2}]}
+			`, map[string]interface{}{
+				"column01": testutils.GetUUID("column-01"),
+			}),
+			StatusCode: http.StatusOK,
+			Output:     map[string]interface{}{},
+			PostCheck: func(tc *testutils.APITestCase, router http.Handler, output map[string]interface{}) {
+				// Select from the table
+				res := selectTable(router, testutils.GetUUID("table-01"), makeJSON(`
+				select:
+				  columns: [{property: key1}, {property: key2}]
+				  orderBy: [{key: {column: {{ .column01 }} }}]
+				`, map[string]interface{}{
+					"column01": testutils.GetUUID("column-01"),
+				}))
+				if diff := testutils.CompareJson(map[string]interface{}{
+					"records": []interface{}{
+						[]interface{}{"value1", nil},
+						[]interface{}{"new-value", float64(3.14)},
 					},
 					"limit": float64(10),
 				}, res); diff != "" {

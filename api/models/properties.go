@@ -9,11 +9,11 @@ import (
 
 type Properties map[string]interface{}
 
-var propertiesKeyPattern = regexp.MustCompile(`^\w+$`)
+var PropertiesKeyPattern = regexp.MustCompile(`^\w+$`)
 
 func ValidateProperties(p map[string]interface{}) string {
 	for k, _ := range p {
-		if !propertiesKeyPattern.MatchString(k) {
+		if !PropertiesKeyPattern.MatchString(k) {
 			return fmt.Sprintf("Invalid property key: %s", k)
 		}
 	}

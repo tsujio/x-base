@@ -162,19 +162,31 @@ func convertToInsertQuery(query *schemas.InsertQuery, table *models.Table) (*mod
 
 	// Columns
 	for _, c := range query.Columns {
-		var column *models.Column
-		for _, col := range table.Columns {
-			if col.ID == models.UUID(c.ColumnID) {
-				column = &col
-				break
+		switch cv := c.(type) {
+		case schemas.ColumnExpr:
+			var column *models.Column
+			for _, col := range table.Columns {
+				if col.ID == models.UUID(cv.ColumnID) {
+					column = &col
+					break
+				}
 			}
+			if column == nil {
+				return nil, fmt.Errorf("Column not found: id=%s", cv.ColumnID)
+			}
+			q.Columns = append(q.Columns, models.ColumnExpr{
+				Column: *column,
+			})
+		case schemas.PropertyExpr:
+			if !models.PropertiesKeyPattern.MatchString(cv.Key) {
+				return nil, fmt.Errorf("Invalid property key: %s", cv.Key)
+			}
+			q.Columns = append(q.Columns, models.PropertyExpr{
+				Key: cv.Key,
+			})
+		default:
+			return nil, fmt.Errorf("Invalid insert column type: %T", c)
 		}
-		if column == nil {
-			return nil, fmt.Errorf("Column not found: id=%s", c.ColumnID)
-		}
-		q.Columns = append(q.Columns, models.ColumnExpr{
-			Column: *column,
-		})
 	}
 
 	// Values
@@ -264,18 +276,31 @@ func convertToUpdateQuery(query *schemas.UpdateQuery, table *models.Table) (*mod
 
 	// Set
 	for _, s := range query.Set {
-		var column *models.Column
-		for _, col := range table.Columns {
-			if col.ID == models.UUID(s.To.ColumnID) {
-				column = &col
-				break
+		var to interface{}
+		switch t := s.To.(type) {
+		case schemas.ColumnExpr:
+			var column *models.Column
+			for _, col := range table.Columns {
+				if col.ID == models.UUID(t.ColumnID) {
+					column = &col
+					break
+				}
 			}
-		}
-		if column == nil {
-			return nil, fmt.Errorf("Column not found: id=%s", s.To.ColumnID)
-		}
-		c := models.ColumnExpr{
-			Column: *column,
+			if column == nil {
+				return nil, fmt.Errorf("Column not found: id=%s", t.ColumnID)
+			}
+			to = models.ColumnExpr{
+				Column: *column,
+			}
+		case schemas.PropertyExpr:
+			if !models.PropertiesKeyPattern.MatchString(t.Key) {
+				return nil, fmt.Errorf("Invalid property key: %s", t.Key)
+			}
+			to = models.PropertyExpr{
+				Key: t.Key,
+			}
+		default:
+			return nil, fmt.Errorf("Invalid update set to type: %T", s.To)
 		}
 
 		v, err := convertToExpr(s.Value, table)
@@ -284,7 +309,7 @@ func convertToUpdateQuery(query *schemas.UpdateQuery, table *models.Table) (*mod
 		}
 
 		q.Set = append(q.Set, models.UpdateSet{
-			To:    c,
+			To:    to,
 			Value: v,
 		})
 	}
@@ -333,6 +358,13 @@ func convertToExpr(schema interface{}, table *models.Table) (models.SQLBuilder, 
 		}
 		return models.MetadataExpr{
 			Key: k,
+		}, nil
+	case schemas.PropertyExpr:
+		if !models.PropertiesKeyPattern.MatchString(s.Key) {
+			return nil, fmt.Errorf("Invalid property key: %s", s.Key)
+		}
+		return models.PropertyExpr{
+			Key: s.Key,
 		}, nil
 	case schemas.ColumnExpr:
 		for _, col := range table.Columns {

@@ -28,7 +28,7 @@ func convertGetListSortKeyToOrderString(sortKeys []GetListSortKey, sortableKeys 
 		var key string
 		if strings.HasPrefix(s.Key, "property.") {
 			prop := s.Key[len("property."):]
-			if !propertiesKeyPattern.MatchString(prop) {
+			if !PropertiesKeyPattern.MatchString(prop) {
 				return "", fmt.Errorf("Invalid sort key: %s", s.Key)
 			}
 			key = fmt.Sprintf("JSON_EXTRACT(properties, '$.%s')", prop)
