@@ -305,13 +305,10 @@ components:
     PaginatedList:
       type: object
       required:
-      - hasNext
       - totalCount
       properties:
         totalCount:
           type: integer
-        hasNext:
-          type: boolean
     CreateOrganizationInput:
       type: object
     UpdateOrganizationInput:

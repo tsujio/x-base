@@ -86,17 +86,13 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	opts := models.GetFolderChildrenOpts{
 		Sort:        sortKeyOpt,
 		Offset:      (*input.Page - 1) * *input.PageSize,
-		Limit:       *input.PageSize + 1,
+		Limit:       *input.PageSize,
 		ComputePath: true,
 	}
 	children, totalCount, err := folder.GetChildren(controller.DB, &opts)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get children", err)
 		return
-	}
-	hasNext := len(children) > *input.PageSize
-	if hasNext {
-		children = children[:len(children)-1]
 	}
 
 	// Convert to output schema
@@ -107,7 +103,6 @@ func (controller *FolderController) GetFolderChildren(w http.ResponseWriter, r *
 	}
 	output.Children = c
 	output.TotalCount = totalCount
-	output.HasNext = hasNext
 
 	// Send response
 	err = json.NewEncoder(w).Encode(&output)

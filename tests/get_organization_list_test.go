@@ -50,36 +50,6 @@ func TestGetOrganizationList(t *testing.T) {
 					},
 				},
 				"totalCount": float64(5),
-				"hasNext":    true,
-			},
-		},
-		{
-			Title: "hasNext=false",
-			Prepare: func(tc *testutils.APITestCase, db *gorm.DB) error {
-				return testutils.LoadFixture(`
-				organizations:
-				  - id: organization-01
-				    createdAt: 2021-01-01T00:00:00Z
-				  - id: organization-02
-				    createdAt: 2021-01-02T00:00:00Z
-				`)
-			},
-			Query: url.Values{
-				"page":     []string{"2"},
-				"pageSize": []string{"1"},
-			},
-			StatusCode: http.StatusOK,
-			Output: map[string]interface{}{
-				"organizations": []interface{}{
-					map[string]interface{}{
-						"id":         testutils.GetUUID("organization-02"),
-						"properties": map[string]interface{}{},
-						"createdAt":  testutils.Timestamp{},
-						"updatedAt":  testutils.Timestamp{},
-					},
-				},
-				"totalCount": float64(2),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -98,7 +68,6 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
 				"totalCount":    float64(2),
-				"hasNext":       false,
 			},
 		},
 		{
@@ -116,7 +85,6 @@ func TestGetOrganizationList(t *testing.T) {
 			Output: map[string]interface{}{
 				"organizations": []interface{}{},
 				"totalCount":    float64(1),
-				"hasNext":       true,
 			},
 		},
 		{
@@ -175,7 +143,6 @@ func TestGetOrganizationList(t *testing.T) {
 					},
 				},
 				"totalCount": float64(1),
-				"hasNext":    false,
 			},
 		},
 		{
@@ -223,7 +190,6 @@ func TestGetOrganizationList(t *testing.T) {
 					},
 				},
 				"totalCount": float64(1),
-				"hasNext":    false,
 			},
 		},
 	}

@@ -39,16 +39,12 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 	opts := models.GetOrganizationListOpts{
 		Sort:   "CreatedAt ASC, ID ASC",
 		Offset: (*input.Page - 1) * *input.PageSize,
-		Limit:  *input.PageSize + 1,
+		Limit:  *input.PageSize,
 	}
 	organizations, totalCount, err := models.GetOrganizationList(controller.DB, &opts)
 	if err != nil {
 		responses.SendErrorResponse(w, r, http.StatusInternalServerError, "Failed to get organizations", err)
 		return
-	}
-	hasNext := len(organizations) > *input.PageSize
-	if hasNext {
-		organizations = organizations[:len(organizations)-1]
 	}
 
 	// Convert to output schema
@@ -71,7 +67,6 @@ func (controller *OrganizationController) GetOrganizationList(w http.ResponseWri
 		}
 	}
 	output.TotalCount = totalCount
-	output.HasNext = hasNext
 
 	// Send response
 	err = json.NewEncoder(w).Encode(&output)
