@@ -13,6 +13,7 @@ paths:
       - Organization
       summary: Get organization list
       parameters:
+      - $ref: "#/components/parameters/properties"
       - $ref: "#/components/parameters/sort"
       - $ref: "#/components/parameters/page"
       - $ref: "#/components/parameters/pageSize"
@@ -47,6 +48,8 @@ paths:
       tags:
       - Organization
       summary: Get organization
+      parameters:
+      - $ref: "#/components/parameters/properties"
       responses:
         200:
           description: Organization
@@ -103,6 +106,9 @@ paths:
       tags:
       - Table
       summary: Get table
+      parameters:
+      - $ref: "#/components/parameters/properties"
+      - $ref: "#/components/parameters/columnProperties"
       responses:
         200:
           description: Table
@@ -247,6 +253,8 @@ paths:
       tags:
       - Folder
       summary: Get folder
+      parameters:
+      - $ref: "#/components/parameters/properties"
       responses:
         200:
           description: Folder
@@ -290,6 +298,7 @@ paths:
         retrieving entries at the root folder of the organization.
       parameters:
       - $ref: "#/components/parameters/organizationIdQuery"
+      - $ref: "#/components/parameters/properties"
       - $ref: "#/components/parameters/sort"
       - $ref: "#/components/parameters/page"
       - $ref: "#/components/parameters/pageSize"
@@ -309,20 +318,33 @@ components:
       properties:
         totalCount:
           type: integer
+    Properties:
+      type: object
+    PropertiesPatch:
+      type: object
     CreateOrganizationInput:
       type: object
+      properties:
+        properties:
+          $ref: "#/components/schemas/Properties"
     UpdateOrganizationInput:
       type: object
+      properties:
+        properties:
+          $ref: "#/components/schemas/PropertiesPatch"
     Organization:
       type: object
       required:
-      - createdAt
       - id
+      - properties
+      - createdAt
       - updatedAt
       properties:
         id:
           type: string
           format: uuid
+        properties:
+          $ref: "#/components/schemas/Properties"
         createdAt:
           type: string
           format: date-time
@@ -343,11 +365,12 @@ components:
     TableFilesystemEntry:
       type: object
       required:
-      - createdAt
       - id
       - organizationId
       - path
       - type
+      - properties
+      - createdAt
       - updatedAt
       properties:
         id:
@@ -368,15 +391,20 @@ components:
             required:
             - id
             - type
+            - properties
             properties:
               id:
                 type: string
                 format: uuid
+              properties:
+                $ref: "#/components/schemas/Properties"
               type:
                 type: string
                 enum:
                 - folder
                 - table
+        properties:
+          $ref: "#/components/schemas/Properties"
         createdAt:
           type: string
           format: date-time
@@ -398,6 +426,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CreateColumnInput'
+        properties:
+          $ref: "#/components/schemas/Properties"
     UpdateTableInput:
       type: object
       properties:
@@ -406,6 +436,8 @@ components:
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the
             root folder
           format: uuid
+        properties:
+          $ref: "#/components/schemas/PropertiesPatch"
     Table:
       allOf:
       - $ref: '#/components/schemas/TableFilesystemEntry'
@@ -422,11 +454,15 @@ components:
       properties:
         index:
           type: integer
+        properties:
+          $ref: "#/components/schemas/Properties"
     UpdateColumnInput:
       type: object
       properties:
         index:
           type: integer
+        properties:
+          $ref: "#/components/schemas/PropertiesPatch"
     ReorderColumnInput:
       type: object
       required:
@@ -440,10 +476,10 @@ components:
     Column:
       type: object
       required:
-      - createdAt
       - id
-      - index
       - tableId
+      - index
+      - createdAt
       - updatedAt
       properties:
         id:
@@ -454,6 +490,8 @@ components:
           format: uuid
         index:
           type: integer
+        properties:
+          $ref: "#/components/schemas/Properties"
         createdAt:
           type: string
           format: date-time
@@ -489,7 +527,9 @@ components:
             columns:
               type: array
               items:
-                $ref: "#/components/schemas/ColumnExpr"
+                oneOf:
+                - $ref: "#/components/schemas/ColumnExpr"
+                - $ref: "#/components/schemas/PropertyExpr"
             values:
               type: array
               items:
@@ -537,6 +577,7 @@ components:
     Expr:
       oneOf:
       - $ref: "#/components/schemas/MetadataExpr"
+      - $ref: "#/components/schemas/PropertyExpr"
       - $ref: "#/components/schemas/ColumnExpr"
       - $ref: "#/components/schemas/ValueExpr"
       - $ref: "#/components/schemas/FuncExpr"
@@ -553,6 +594,13 @@ components:
           enum:
           - id
           - createdAt
+    PropertyExpr:
+      type: object
+      required:
+      - key
+      properties:
+        key:
+          type: string
     ColumnExpr:
       type: object
       required:
@@ -740,7 +788,9 @@ components:
       - value
       properties:
         to:
-          $ref: "#/components/schemas/ColumnExpr"
+          oneOf:
+          - $ref: "#/components/schemas/ColumnExpr"
+          - $ref: "#/components/schemas/PropertyExpr"
         value:
           $ref: "#/components/schemas/Expr"
     QueryTableRecordResult:
@@ -789,6 +839,8 @@ components:
         parentFolderId:
           type: string
           format: uuid
+        properties:
+          $ref: "#/components/schemas/Properties"
     UpdateFolderInput:
       type: object
       properties:
@@ -797,6 +849,8 @@ components:
           description: Specify `00000000-0000-0000-0000-000000000000` to move to the
             root folder
           format: uuid
+        properties:
+          $ref: "#/components/schemas/PropertiesPatch"
     Folder:
       allOf:
       - $ref: '#/components/schemas/TableFilesystemEntry'
@@ -851,11 +905,28 @@ components:
         `FIELD:asc` or `FIELD:desc` mean "Sort by FIELD in ascending/descending order".
         `FIELD:(value1 value2)` means "Sort by FIELD in order of value1, value2".
         Multiple sort fields are joined with ",".
+        If FIELD is `property.KEY` format, it indicates the property value of the `KEY` key.
       name: sort
       in: query
       schema:
         type: string
-      example: "field1:asc,field2:desc,field3:(value1 value2)"
+      example: "field1:asc,property.key1:desc,field3:(value1 value2)"
+    properties:
+      description: |
+        Filter properties to get.
+      name: properties
+      in: query
+      schema:
+        type: string
+      example: "key1,key2"
+    columnProperties:
+      description: |
+        Filter column properties to get table.
+      name: columnProperties
+      in: query
+      schema:
+        type: string
+      example: "key1,key2"
     page:
       name: page
       in: query
