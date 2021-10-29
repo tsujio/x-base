@@ -38,7 +38,7 @@ func main() {
 		logging.Error(fmt.Sprintf("Failed to set up db: %+v", err), nil)
 		return
 	}
-	db, err := databases.Open(dbConfig)
+	db, err := databases.Open(dbConfig, nil)
 	if err != nil {
 		logging.Error(fmt.Sprintf("Failed to open db: %+v", err), nil)
 		return

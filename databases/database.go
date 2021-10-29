@@ -10,6 +10,7 @@ import (
 	"golang.org/x/xerrors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DBConfig struct {
@@ -45,7 +46,7 @@ func Setup(conf *DBConfig, migrationsDir string) error {
 	}
 
 	// Check db connection
-	db, err := Open(conf)
+	db, err := Open(conf, nil)
 	if err != nil {
 		return xerrors.Errorf("Failed to get db connection: %w", err)
 	}
@@ -61,12 +62,17 @@ func Setup(conf *DBConfig, migrationsDir string) error {
 	return nil
 }
 
-func Open(conf *DBConfig) (*gorm.DB, error) {
+func Open(conf *DBConfig, lgr logger.Interface) (*gorm.DB, error) {
+	if lgr == nil {
+		lgr = logger.Default
+	}
+
 	// Open db
 	db, err := gorm.Open(mysql.Open(getUrl(conf)), &gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC().Truncate(time.Second)
 		},
+		Logger: lgr,
 	})
 	if err != nil {
 		return nil, xerrors.Errorf("Failed to open database: %w", err)
