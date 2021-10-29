@@ -12,7 +12,7 @@ type Properties map[string]interface{}
 var PropertiesKeyPattern = regexp.MustCompile(`^\w+$`)
 
 func ValidateProperties(p map[string]interface{}) string {
-	for k, _ := range p {
+	for k := range p {
 		if !PropertiesKeyPattern.MatchString(k) {
 			return fmt.Sprintf("Invalid property key: %s", k)
 		}
